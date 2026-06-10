@@ -220,8 +220,6 @@ Ce projet est sous licence **PolyForm Noncommercial 1.0.0**.
 **Usage autorisé** : personnel, éducatif, recherche, usage interne non-commercial  
 **Usage interdit** : vente, intégration dans produits commerciaux, SaaS commercial
 
-Pour une licence commerciale, contacter : david@neri.contact
-
 Voir [LICENSE](LICENSE) pour le texte complet et [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) pour les licences des dépendances.
 
 ## V2 — Roadmap
