@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Anonymisation Gateway</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; }
+    .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 2rem; }
+    section { background: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;
+              border: 1px solid #e5e5e5; }
+    h2 { font-size: 0.875rem; font-weight: 600; text-transform: uppercase;
+         letter-spacing: 0.05em; color: #666; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.875rem; margin-bottom: 0.35rem; color: #444; }
+    input, textarea { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d4d4d4;
+                      border-radius: 6px; font-size: 0.875rem; font-family: inherit; }
+    textarea { height: 120px; resize: vertical; }
+    button { padding: 0.5rem 1rem; border-radius: 6px; border: none; font-size: 0.875rem;
+             cursor: pointer; font-family: inherit; }
+    .btn-primary { background: #1a1a1a; color: #fff; }
+    .btn-danger  { background: #dc2626; color: #fff; }
+    .btn-primary:hover { background: #333; }
+    .btn-danger:hover  { background: #b91c1c; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; margin-top: 0.5rem; }
+    th { text-align: left; padding: 0.4rem 0.75rem; background: #f5f5f5;
+         border-bottom: 1px solid #e5e5e5; font-weight: 600; }
+    td { padding: 0.4rem 0.75rem; border-bottom: 1px solid #f0f0f0; font-family: monospace; }
+    .result { margin-top: 1rem; padding: 0.75rem; background: #f9f9f9; border-radius: 6px;
+              font-size: 0.875rem; white-space: pre-wrap; font-family: monospace; min-height: 2rem; }
+    .row { display: flex; gap: 0.75rem; align-items: flex-end; }
+    .row input { flex: 1; }
+    .empty { color: #999; font-size: 0.8125rem; padding: 0.5rem 0; }
+    .error { color: #dc2626; font-size: 0.8125rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Anonymisation Gateway</h1>
+
+  <section>
+    <h2>Sidecar local</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      Cette page parle au sidecar tournant sur ta machine
+      (<code id="currentSidecar">http://127.0.0.1:8787</code>). Aucune
+      donnée ne quitte le poste.
+    </p>
+    <div class="row">
+      <input type="text" id="sidecarUrl" placeholder="http://127.0.0.1:8787">
+      <button class="btn-primary" onclick="saveSidecarUrl()">Enregistrer</button>
+    </div>
+    <div id="sidecarStatus" style="margin-top:0.5rem;font-size:0.8rem;color:#666;"></div>
+  </section>
+
+  <section>
+    <h2>Mapping de session</h2>
+    <button class="btn-primary" onclick="loadMapping()" style="margin-bottom:0.75rem;">Actualiser</button>
+    <button class="btn-danger" onclick="clearMapping()" style="margin-bottom:0.75rem;margin-left:0.5rem;">Effacer la session</button>
+    <div id="mappingContainer"><p class="empty">Cliquer sur Actualiser pour charger le mapping.</p></div>
+  </section>
+
+  <section>
+    <h2>Dé-anonymiser un texte</h2>
+    <label>Texte avec tokens</label>
+    <textarea id="deanonInput" placeholder="[PERSONNE_1] a un sinistre le [DATE_1]..."></textarea>
+    <button class="btn-primary" onclick="deanon()" style="margin-top:0.75rem;">Dé-anonymiser</button>
+    <div class="result" id="deanonResult"></div>
+  </section>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  // Sidecar URL : 1) <meta name="sidecar-url"> injecté en deploy, sinon
+  //               2) localStorage user override, sinon
+  //               3) défaut loopback
+  function defaultSidecar() {
+    const meta = document.querySelector('meta[name="sidecar-url"]');
+    if (meta && meta.content) return meta.content;
+    return "http://127.0.0.1:8787";
+  }
+
+  function getSidecar() {
+    return localStorage.getItem("sidecar_url") || defaultSidecar();
+  }
+
+  function saveSidecarUrl() {
+    const url = $("sidecarUrl").value.trim();
+    if (!url) {
+      localStorage.removeItem("sidecar_url");
+      $("sidecarStatus").textContent = "Retour à l'URL par défaut.";
+    } else {
+      localStorage.setItem("sidecar_url", url.replace(/\/$/, ""));
+      $("sidecarStatus").textContent = "URL enregistrée.";
+    }
+    $("currentSidecar").textContent = getSidecar();
+    $("sidecarUrl").value = "";
+  }
+
+  async function sidecarFetch(path, opts = {}) {
+    const res = await fetch(getSidecar() + path, {
+      ...opts,
+      headers: {
+        "Content-Type": "application/json",
+        ...(opts.headers || {}),
+      },
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json();
+  }
+
+  async function loadMapping() {
+    try {
+      const data = await sidecarFetch("/mapping");
+      const entries = Object.entries(data);
+      if (!entries.length) {
+        $("mappingContainer").innerHTML = '<p class="empty">Aucun token dans la session courante.</p>';
+        return;
+      }
+      const rows = entries.map(([token, val]) =>
+        `<tr><td>${token}</td><td>${val}</td></tr>`
+      ).join("");
+      $("mappingContainer").innerHTML =
+        `<table><thead><tr><th>Token</th><th>Valeur originale</th></tr></thead><tbody>${rows}</tbody></table>`;
+    } catch (e) {
+      $("mappingContainer").innerHTML = `<p class="error">${e.message}</p>`;
+    }
+  }
+
+  async function clearMapping() {
+    if (!confirm("Effacer la session ? Les tokens ne seront plus déchiffrables.")) return;
+    try {
+      await sidecarFetch("/mapping", { method: "DELETE" });
+      $("mappingContainer").innerHTML = '<p class="empty">Session effacée.</p>';
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function deanon() {
+    const text = $("deanonInput").value.trim();
+    if (!text) return;
+    try {
+      const data = await sidecarFetch("/deanonymize", {
+        method: "POST",
+        body: JSON.stringify({ text }),
+      });
+      $("deanonResult").textContent = data?.result ?? "";
+    } catch (e) {
+      $("deanonResult").textContent = `Erreur : ${e.message}`;
+    }
+  }
+
+  window.onload = () => {
+    $("currentSidecar").textContent = getSidecar();
+  };
+</script>
+</body>
+</html>

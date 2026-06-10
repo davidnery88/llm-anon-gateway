@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LLM Anonymization Gateway — Zero-Trust · Démo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12161b; --ink:#e7eaee; --mute:#8b95a3;
+    --red:#dc2626; --redsoft:#7f1d1d; --grid:#1a2029;
+    --tok:#fbbf24; --pii:#f87171; --safe:#34d399; --blue:#60a5fa;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;padding:6vh 8vw;
+    display:none;flex-direction:column;justify-content:center;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(220,38,38,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 110%, rgba(52,211,153,.06), transparent 60%),
+      linear-gradient(180deg,#0b0d10,#0a0c0f);
+    animation:fade .35s ease both;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  h1{font-size:5.4vw;font-weight:800;letter-spacing:-.02em;line-height:1;margin-bottom:1.2rem}
+  h1 .accent{color:var(--safe)}
+  h2{font-size:3.2vw;font-weight:700;letter-spacing:-.02em;margin-bottom:1.8rem;line-height:1.1}
+  h2 .num{display:inline-block;width:2.6rem;height:2.6rem;line-height:2.6rem;text-align:center;border:1px solid var(--safe);color:var(--safe);border-radius:50%;font-size:1.4rem;margin-right:.8rem;vertical-align:middle;font-family:var(--mono)}
+  h3{font-size:1.4rem;font-weight:600;margin-bottom:.5rem;color:var(--ink)}
+  p,li{font-size:1.25rem;line-height:1.55;color:var(--ink)}
+  .lead{font-size:1.55rem;color:var(--mute);max-width:60ch}
+  .mute{color:var(--mute)}
+  .mono{font-family:var(--mono)}
+  .red{color:var(--red)}
+  .tok{color:var(--tok)}
+  .pii{color:var(--pii)}
+  .safe{color:var(--safe)}
+  .blue{color:var(--blue)}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:.9rem}
+  ul li{padding-left:1.4rem;position:relative}
+  ul li::before{content:"";position:absolute;left:0;top:.7rem;width:.5rem;height:.5rem;background:var(--safe);border-radius:1px;transform:rotate(45deg)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01));
+    border:1px solid var(--grid);border-radius:14px;padding:1.6rem 1.4rem;
+  }
+  .card.warn{border-color:rgba(220,38,38,.4)}
+  .card.ok{border-color:rgba(52,211,153,.4)}
+  .card .tag{font-family:var(--mono);font-size:.78rem;color:var(--safe);text-transform:uppercase;letter-spacing:.12em;margin-bottom:.6rem;display:block}
+  .card.warn .tag{color:var(--red)}
+  .card h3{font-size:1.35rem;margin-bottom:.5rem}
+  .card p{font-size:1.05rem;color:var(--mute)}
+
+  pre{
+    background:#06080a;border:1px solid var(--grid);border-radius:10px;
+    padding:1.1rem 1.2rem;font-family:var(--mono);font-size:1rem;
+    overflow:auto;white-space:pre;line-height:1.5;
+  }
+  .codetitle{
+    font-family:var(--mono);font-size:.78rem;color:var(--mute);
+    text-transform:uppercase;letter-spacing:.14em;margin-bottom:.4rem;display:block;
+  }
+  .row{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap}
+  .arrow{font-family:var(--mono);font-size:2rem;color:var(--safe);opacity:.8}
+
+  .footer{
+    position:absolute;bottom:2.4vh;left:8vw;right:8vw;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:.78rem;color:var(--mute);
+    text-transform:uppercase;letter-spacing:.14em;
+  }
+  .footer .dot{width:4px;height:4px;background:var(--safe);border-radius:50%;display:inline-block;margin:0 .7rem;vertical-align:middle}
+  .progress{position:absolute;top:0;left:0;height:3px;background:var(--safe);transition:width .35s ease}
+
+  .kbd{font-family:var(--mono);font-size:.75rem;padding:.15rem .5rem;border:1px solid var(--grid);border-radius:4px;color:var(--mute);background:#0e1216}
+
+  .badge{display:inline-block;padding:.25rem .65rem;border-radius:999px;font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--safe);color:var(--safe);margin-bottom:1.2rem}
+  .pulse{display:inline-block;width:.6rem;height:.6rem;background:var(--safe);border-radius:50%;margin-right:.5rem;box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.6)}70%{box-shadow:0 0 0 12px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+
+  .arch{font-family:var(--mono);font-size:.95rem;line-height:1.55;color:var(--ink);white-space:pre}
+  .arch .b{color:var(--safe);font-weight:700}
+  .arch .r{color:var(--red);font-weight:700}
+  .arch .m{color:var(--mute)}
+
+  .twocol{display:grid;grid-template-columns:1fr 1.1fr;gap:2.2rem;align-items:stretch}
+  .twocol > div{display:flex;flex-direction:column;gap:1rem}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:stretch}
+  .compare > div{padding:1.4rem;border:1px solid var(--grid);border-radius:12px}
+  .compare h3{font-family:var(--mono);font-size:.85rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:.8rem}
+  .compare .old{border-color:rgba(220,38,38,.35)}
+  .compare .old h3{color:var(--red)}
+  .compare .new{border-color:rgba(52,211,153,.35)}
+  .compare .new h3{color:var(--safe)}
+
+  .help{position:fixed;bottom:1.2vh;right:1vw;font-family:var(--mono);font-size:.7rem;color:var(--mute);opacity:.6}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1. TITRE -->
+  <section class="slide">
+    <span class="badge">v2 · zero-trust</span>
+    <h1>LLM Anonymization<br><span class="accent">Zero-Trust</span></h1>
+    <p class="lead">Le LLM est utile.<br>Les données personnelles restent sur le poste de l'employé.<br><span class="safe">Toujours.</span></p>
+    <div style="margin-top:3rem" class="row mono mute">
+      <span><span class="pulse"></span>Sidecar · 127.0.0.1:8787</span>
+      <span class="dot"></span>
+      <span>Gateway · métadonnées uniquement</span>
+      <span class="dot"></span>
+      <span>$ bash demo/zero_trust/run_demo.sh</span>
+    </div>
+    <div class="footer"><span>LLM Anon Gateway · zero-trust</span><span>1 / 13</span></div>
+  </section>
+
+  <!-- 2. POURQUOI ON A CHANGÉ -->
+  <section class="slide">
+    <h2>Pourquoi on a refait l'architecture</h2>
+    <div class="grid2">
+      <div>
+        <span class="codetitle">v1 — centralisé</span>
+<pre>Gateway LAN
+├── NER (GLiNER + Presidio)
+├── Redis  <span class="r">← mappings token↔PII en clair</span>
+├── qwen3-pii
+└── KB colonnes
+
+⚠ Un admin/attaquant qui a un shell
+   sur le gateway peut <span class="r">tout réverser</span>,
+   pour tous les users, en une commande.</pre>
+        <p class="mute" style="margin-top:1rem;font-size:1rem">L'app-level cloisonnement par <code>user_id</code> ne tient pas contre quelqu'un qui a accès à Redis. C'était un risque résiduel inacceptable.</p>
+      </div>
+      <div>
+        <span class="codetitle">v2 — zero-trust</span>
+<pre>Machine utilisateur
+├── Sidecar Docker (loopback only)
+│   ├── NER (GLiNER + Presidio)
+│   ├── Redis local <span class="safe">(in-memory, wipe au reboot)</span>
+│   └── mappings token↔PII
+
+Gateway LAN
+└── métadonnées uniquement
+    (KB colonnes, patterns, clés)
+    <span class="safe">ZÉRO PII jamais</span></pre>
+        <p class="mute" style="margin-top:1rem;font-size:1rem">Le gateway compromis ne révèle rien de réversible — la clé est sur le poste de l'employé, chiffrée par le disque chiffré de son OS.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Motivation</span><span>2 / 13</span></div>
+  </section>
+
+  <!-- 3. ARCHITECTURE GLOBALE -->
+  <section class="slide">
+    <h2>Architecture zero-trust</h2>
+    <pre class="arch">
+   ┌─────────────────────────────────────────┐         ┌──────────────────────┐
+   │  <span class="b">Machine utilisateur</span>                    │         │  <span class="b">Serveur LAN</span>          │
+   │                                         │         │                      │
+   │  Claude Code (hooks)                    │         │  ┌────────────────┐  │
+   │  MCP server         ┌──────────────┐    │ KB sync │  │ Gateway        │  │
+   │  Frontend           │              │    │ classify│  │  ─ admin/*     │  │
+   │       ─────────────▶│  Sidecar     │────┼────────▶│  │  ─ kb/snapshot │  │
+   │                     │  127.0.0.1   │    │         │  │  ─ classify_   │  │
+   │                     │  :8787       │    │         │  │     column     │  │
+   │                     │              │    │         │  └────────┬───────┘  │
+   │                     │  GLiNER      │    │         │           │          │
+   │                     │  Presidio    │    │         │  ┌────────▼───────┐ │
+   │                     │  Redis local │    │         │  │ Postgres       │ │
+   │                     │  (in-memory) │    │         │  │  ─ column_KB   │ │
+   │                     └──────────────┘    │         │  │  ─ patterns    │ │
+   │                                         │         │  │  ─ api_keys    │ │
+   │  <span class="b">TOUT le PII reste ici</span>                  │         │  │  <span class="b">ZÉRO PII</span>        │ │
+   └─────────────────────────────────────────┘         │  └────────────────┘ │
+                                                       └──────────────────────┘</pre>
+    <div class="footer"><span>Architecture</span><span>3 / 13</span></div>
+  </section>
+
+  <!-- 4. SIDECAR LOCAL -->
+  <section class="slide">
+    <h2>Le sidecar — chez chaque utilisateur</h2>
+    <div class="grid3">
+      <div class="card">
+        <span class="tag">Couche 1</span>
+        <h3>GLiNER</h3>
+        <p><span class="mono">urchade/gliner_multi_pii-v1</span> embarqué dans l'image Docker. ~50ms / phrase, CPU pur. Détecte personnes, lieux, orgs en FR / EN / DE.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Couche 2</span>
+        <h3>Presidio</h3>
+        <p>Patterns Suisse : IBAN CH, AVS, tél +41, email, n° police, n° contrat, plaques. Embarqué localement avec spaCy fr.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Couche 3</span>
+        <h3>qwen3-pii</h3>
+        <p>Reste sur le gateway (LLM lourd). Le sidecar l'appelle pour les colonnes ambiguës — voir slide side-channel.</p>
+      </div>
+    </div>
+    <p class="mute mono" style="margin-top:2rem;font-size:.95rem">Image Docker ~2 GB · bind <code>127.0.0.1:8787</code> · auth optionnelle <code>X-Sidecar-Token</code> (mode 0600).</p>
+    <div class="footer"><span>Sidecar · 3 couches</span><span>4 / 13</span></div>
+  </section>
+
+  <!-- 5. REDIS LOCAL EPHEMERE -->
+  <section class="slide">
+    <h2>Mappings token↔PII · <span class="safe">éphémères, locaux</span></h2>
+    <div class="twocol">
+      <div>
+        <ul>
+          <li>Redis dans le sidecar Docker</li>
+          <li><span class="mono">--save "" --appendonly no</span> — pas de persistance</li>
+          <li>Reboot du poste → mappings effacés</li>
+          <li>Aucune synchro entre postes</li>
+          <li>Si tu perds le laptop : rien à exfiltrer post-mortem</li>
+        </ul>
+        <p class="mute mono" style="margin-top:1.6rem;font-size:.95rem">Trade-off assumé : <code>[PERSONNE_1]</code> désigne potentiellement une autre personne d'un jour à l'autre. Claude Code voit des tokens cohérents <strong>dans la session</strong>, pas entre sessions.</p>
+      </div>
+      <div>
+        <span class="codetitle">Lookup local</span>
+<pre><span class="mute"># Prompt 1 (lundi 09h00)</span>
+"<span class="pii">David Neri</span> a un sinistre"
+        <span class="arrow">↓</span>
+"<span class="tok">[PERSONNE_1]</span> a un sinistre"
+
+<span class="mute"># Prompt 2 (lundi 09h05, même session)</span>
+"<span class="pii">David Neri</span> habite à <span class="pii">Lausanne</span>"
+        <span class="arrow">↓</span>
+"<span class="tok">[PERSONNE_1]</span> habite à <span class="tok">[LOCALISATION_1]</span>"
+
+<span class="mute"># Lundi 22h, l'user reboot
+# Mardi 09h, même prompt</span>
+"<span class="pii">David Neri</span>" → <span class="tok">[PERSONNE_1]</span> <span class="mute">(compteur reset)</span></pre>
+      </div>
+    </div>
+    <div class="footer"><span>Redis local</span><span>5 / 13</span></div>
+  </section>
+
+  <!-- 6. KB SYNC -->
+  <section class="slide">
+    <h2>Knowledge base · sync sans fuite</h2>
+    <div class="twocol">
+      <div>
+        <p style="margin-bottom:1.2rem">Les sidecars partagent une <strong>knowledge base de colonnes</strong> servie par le gateway. C'est de la métadonnée pure (header → label), pas de PII.</p>
+        <ul>
+          <li>Pull au démarrage, puis toutes les <span class="mono">600 s</span></li>
+          <li>Conditional GET avec ETag SHA-256 → <span class="mono">304 Not Modified</span> quand rien n'a bougé</li>
+          <li>Cache disque <span class="mono">~/.cache/anon-sidecar/kb.json</span></li>
+          <li>Si le gateway est briève­ment offline : le sidecar continue avec le snapshot précédent</li>
+          <li>Seul <code>status='active'</code> est diffusé · les <code>pending</code> attendent validation admin</li>
+        </ul>
+      </div>
+      <div>
+        <span class="codetitle">GET /api/kb/snapshot</span>
+<pre>{
+  "version": "<span class="tok">a3f7b...sha256</span>",
+  "column_labels": [
+    {"header_norm":"client_nom",
+     "label":"<span class="safe">PERSONNE</span>",
+     "source":"static"},
+    {"header_norm":"iban_versement",
+     "label":"<span class="safe">IBAN</span>",
+     "source":"static"},
+    <span class="mute">... 147 entrées ...</span>
+  ],
+  "custom_patterns": [
+    {"name":"sinistre_no",
+     "regex":"<span class="tok">SIN-\d{4}-\d{5}</span>",
+     "entity_label":"SINISTRE"}
+  ],
+  "hook_enabled": true,
+  "deanon_enabled": false
+}</pre>
+      </div>
+    </div>
+    <div class="footer"><span>KB sync</span><span>6 / 13</span></div>
+  </section>
+
+  <!-- 7. SIDE-CHANNEL ASSUMÉ -->
+  <section class="slide">
+    <h2>Le seul cas où le serveur voit des PII</h2>
+    <p class="mute" style="margin-bottom:1.6rem;max-width:80ch">Quand le NER local rate une colonne (KB inconnue + GLiNER+Presidio = rien), le sidecar appelle qwen3-pii sur le gateway. C'est le <strong>side-channel pragmatique</strong> assumé.</p>
+    <div class="grid2">
+      <div class="card warn">
+        <span class="tag">Le compromis</span>
+        <h3>~5 % des appels</h3>
+        <p style="margin-top:.8rem">Les valeurs d'échantillon (≤5) transitent par le serveur le temps de l'appel. <strong>Aucune persistance, aucun log de contenu.</strong></p>
+      </div>
+      <div class="card ok">
+        <span class="tag">Pourquoi pas full-local ?</span>
+        <h3>Coût : +3 GB / poste</h3>
+        <p style="margin-top:.8rem">qwen-3B full-local par user = +3 GB d'install + mises à jour à pousser sur N postes. Disproportionné pour 5 % de cas.</p>
+      </div>
+    </div>
+    <div style="margin-top:2rem">
+      <span class="codetitle">Atténuations</span>
+<pre>POST /api/classify_column
+  body  {column, sql_type, <span class="tok">values≤5</span>, table}
+  reply {label, confidence}
+
+  · Cap dur ≤5 samples  · Pas de body logging
+  · Rate-limit <span class="mono">30/min</span> par clé API
+  · Compteur d'appels visible dans l'admin UI <span class="mute">(si &gt;20% → fine-tune le NER local)</span></pre>
+    </div>
+    <div class="footer"><span>Side-channel</span><span>7 / 13</span></div>
+  </section>
+
+  <!-- 8. STACK -->
+  <section class="slide">
+    <h2>Stack technique</h2>
+    <div class="grid3">
+      <div class="card"><span class="tag">Sidecar</span><h3>FastAPI · Python</h3><p>Anonymizer, cache, NER, kb_client. Image Docker ~2 GB avec modèles bakés.</p></div>
+      <div class="card"><span class="tag">Sidecar Redis</span><h3>Redis 7 in-memory</h3><p>maxmemory 256mb · LRU · save="" · loopback only · pas d'AOF.</p></div>
+      <div class="card"><span class="tag">Gateway</span><h3>FastAPI metadata-only</h3><p>Postgres + admin + classify + kb_snapshot. Plus de Redis, plus de NER, plus de LiteLLM. <span class="safe">-1500 lignes</span> vs v1.</p></div>
+      <div class="card"><span class="tag">Postgres</span><h3>147 KB seedées</h3><p>FR / EN / DE pour assurance / assistance / carte grise. Patterns custom, clés API hashées.</p></div>
+      <div class="card"><span class="tag">Intégration IA</span><h3>MCP local</h3><p>Lit <span class="mono">~/.config/anon-sidecar/token</span>, tape <span class="mono">127.0.0.1:8787</span> directement.</p></div>
+      <div class="card"><span class="tag">Hooks</span><h3>Claude Code</h3><p>UserPromptSubmit + Stop. <span class="safe">Install/uninstall propre</span> via marker (slide suivante).</p></div>
+    </div>
+    <div class="footer"><span>Stack</span><span>8 / 13</span></div>
+  </section>
+
+  <!-- 9. INSTALL / UNINSTALL -->
+  <section class="slide">
+    <h2>Install propre · uninstall propre</h2>
+    <div class="twocol">
+      <div>
+        <span class="codetitle">Sur la machine d'un employé</span>
+<pre><span class="mute"># 1. Sidecar (Docker, ~5 min première fois)</span>
+$ bash sidecar/install.sh \
+    --gateway http://192.168.1.13:8001
+
+  ✓ Token X-Sidecar-Token généré
+  ✓ Image buildée · modèles bakés
+  ✓ Stack démarrée
+  ✓ systemd unit installée
+  ✓ http://127.0.0.1:8787/healthz <span class="safe">200</span>
+
+<span class="mute"># 2. Hooks Claude Code</span>
+$ bash scripts/install_hooks.sh
+
+  ✓ Hooks copiés
+  ✓ settings.local.json mis à jour
+  ✓ Marker écrit (pour uninstall)</pre>
+      </div>
+      <div>
+        <span class="codetitle">Et si on veut tout retirer</span>
+<pre>$ bash scripts/uninstall_hooks.sh
+  ✓ settings.local.json nettoyé
+    (hooks tiers <span class="safe">préservés</span>)
+  ✓ Fichiers Python supprimés
+  ✓ Marker retiré
+
+$ bash sidecar/uninstall.sh --purge
+  ✓ Containers arrêtés
+  ✓ Image supprimée
+  ✓ systemd unit retirée
+  ✓ Token + env purgés</pre>
+        <p class="mute" style="margin-top:1rem;font-size:1rem">Le marker <span class="mono">~/.claude/hooks/.anon-gateway-installed</span> trace tout ce qui a été déposé. L'uninstall <strong>ne touche que ce qu'il a posé</strong> — il respecte les hooks tiers et les autres entries des settings.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Lifecycle</span><span>9 / 13</span></div>
+  </section>
+
+  <!-- 10. DEMO A -->
+  <section class="slide">
+    <h2><span class="num">A</span>Démo · copy-paste SQL → sidecar local</h2>
+    <div class="twocol">
+      <div>
+        <span class="codetitle">1 · Résultat SQL brut</span>
+<pre>client_nom,iban,montant
+<span class="pii">Marie Dupont</span>,<span class="pii">CH9300762011623852957</span>,12500
+<span class="pii">Paolo Rossi</span>,<span class="pii">CH5604835012345678009</span>,8200</pre>
+      </div>
+      <div>
+        <span class="codetitle">2 · POST 127.0.0.1:8787/anonymize</span>
+<pre>client_nom,iban,montant
+<span class="tok">[PERSONNE_2]</span>,<span class="tok">[IBAN_1]</span>,12500
+<span class="tok">[PERSONNE_3]</span>,<span class="tok">[IBAN_2]</span>,8200</pre>
+      </div>
+    </div>
+    <p class="mute" style="margin-top:1.6rem">Rien n'est sorti du laptop. La gateway LAN n'a vu <strong>aucun byte</strong> de cet appel.</p>
+    <div class="footer"><span>Démo A</span><span>10 / 13</span></div>
+  </section>
+
+  <!-- 11. DEMO B - MCP via sidecar -->
+  <section class="slide">
+    <h2><span class="num">B</span>Démo · Claude Code via MCP local</h2>
+    <pre class="arch">
+   <span class="b">Claude Code</span>
+        │  « Combien de sinistres ouverts par canton ? »
+        ▼
+   <span class="b">MCP server</span> <span class="m">(local, lit ~/.config/anon-sidecar/token)</span>
+        │
+        ├──▶ <span class="b">query_db(sql)</span>  → <span class="m">demo.sqlite (read-only)</span>
+        │                              │
+        │   ┌──────────────────────────┘
+        │   │  rows avec PII
+        │   ▼
+        └──▶ POST 127.0.0.1:8787/anonymize  <span class="m">(sidecar local)</span>
+                       │
+                       ▼
+   <span class="b">Claude Code</span> ◀───── CSV anonymisé · tokens préservés
+        │
+        ▼
+   Réponse à l'employé · deanon désactivé pour la démo</pre>
+    <p class="mute mono" style="margin-top:1.6rem;font-size:.95rem">Le MCP ne connaît même pas l'URL du gateway. Sa seule dépendance réseau est <span class="mono">127.0.0.1</span>.</p>
+    <div class="footer"><span>Démo B · MCP</span><span>11 / 13</span></div>
+  </section>
+
+  <!-- 12. PATTERN CUSTOM A CHAUD -->
+  <section class="slide">
+    <h2>Quand un PII passe · pattern à chaud</h2>
+    <div class="twocol">
+      <div>
+        <span class="codetitle">Avant — la fuite</span>
+<pre>POST /anonymize
+  "Sinistre n° <span class="pii">SIN-2025-00421</span>"
+        <span class="arrow">↓</span>
+"Sinistre n° <span class="pii">SIN-2025-00421</span>"  <span class="red">⚠ leak</span></pre>
+        <p class="mute" style="margin-top:.8rem;font-size:1rem">Le n° de sinistre n'est pas un format Suisse standard. Pas dans la KB.</p>
+      </div>
+      <div>
+        <span class="codetitle">Admin UI → ajoute le pattern</span>
+<pre>POST /admin/patterns (gateway LAN)
+{
+  "name": "sinistre_no",
+  "regex": "<span class="tok">SIN-\d{4}-\d{5}</span>",
+  "entity_label": "<span class="safe">SINISTRE</span>",
+  "score": 0.95
+}
+
+<span class="mute"># Sidecars pullent la KB</span>
+POST /refresh (sidecar) <span class="mute">ou poll dans &lt;600s</span></pre>
+        <span class="codetitle" style="margin-top:1.2rem">Après — re-test sur le sidecar</span>
+<pre>"Sinistre n° <span class="tok">[SINISTRE_1]</span>"  <span class="safe">✓</span></pre>
+      </div>
+    </div>
+    <p class="mute mono" style="margin-top:1.4rem;font-size:.95rem">L'admin gouverne, les sidecars se mettent à jour. Le contenu utilisateur ne quitte jamais le poste.</p>
+    <div class="footer"><span>Pattern à chaud</span><span>12 / 13</span></div>
+  </section>
+
+  <!-- 13. FIN -->
+  <section class="slide" style="justify-content:center;text-align:center">
+    <h1 style="text-align:center"><span class="accent">Zero-trust</span> terminé</h1>
+    <p class="lead" style="margin:0 auto">Le LLM voit des tokens.<br>Les PII restent sur le poste.<br>Toujours.</p>
+    <div class="row mono mute" style="margin-top:3rem;justify-content:center">
+      <span><span class="pulse"></span>Questions ?</span>
+    </div>
+    <div class="footer"><span>Fin</span><span>13 / 13</span></div>
+  </section>
+
+</div>
+
+<div class="help">
+  <span class="kbd">←</span> <span class="kbd">→</span> navigation &nbsp;·&nbsp;
+  <span class="kbd">F</span> plein écran &nbsp;·&nbsp;
+  <span class="kbd">Home</span> / <span class="kbd">End</span>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const progress=document.getElementById('progress');
+  let i=0;
+  const show=n=>{
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    progress.style.width=((i+1)/slides.length*100)+'%';
+    location.hash=String(i+1);
+  };
+  const init=()=>{
+    const h=parseInt(location.hash.slice(1));
+    show(isFinite(h)&&h>0?h-1:0);
+  };
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(i+1)}
+    else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(i-1)}
+    else if(e.key==='Home'){show(0)}
+    else if(e.key==='End'){show(slides.length-1)}
+    else if(e.key==='f'||e.key==='F'){
+      if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+  document.addEventListener('click',e=>{
+    if(e.target.closest('.help')||e.target.closest('a'))return;
+    const x=e.clientX/window.innerWidth;
+    show(x<.35?i-1:i+1);
+  });
+  init();
+</script>
+</body>
+</html>

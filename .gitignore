@@ -1,0 +1,32 @@
+# Environnements virtuels
+.venv/
+venv/
+*-venv/
+**/.venv/
+**/venv/
+archive/venv-root/
+
+# Outillage RunPod (clés SSH éphémères, bundles)
+.runpod/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Secrets & config locale
+.env
+.env.*
+!.env.example
+certs/*.pem
+certs/*.key
+
+# Données générées
+demo/*.sqlite
+
+# Poids de modèles entraînés (PAS les datasets .jsonl, qui restent versionnés)
+finetune_gliner/models/
+
+# OS / éditeur
+.DS_Store

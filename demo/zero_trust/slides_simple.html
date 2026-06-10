@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Protéger les données clients avec l'IA — Démo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#f6f8fb; --panel:#ffffff; --ink:#0f172a; --mute:#475569;
+    --line:#dbe3ee; --soft:#eef3f9;
+    --blue:#1e6fd9; --bluesoft:#dbeafe;
+    --green:#0f9d6e; --greensoft:#d1fae5;
+    --red:#c53030; --redsoft:#fde2e2;
+    --amber:#b45309; --ambersoft:#fef3c7;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;padding:5vh 8vw 8vh;
+    display:none;flex-direction:column;justify-content:center;
+    animation:fade .3s ease both;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  h1{font-size:3.4rem;font-weight:800;letter-spacing:-.02em;line-height:1.05;margin-bottom:1.2rem;color:var(--ink)}
+  h1 .accent{color:var(--blue)}
+  h2{font-size:2.2rem;font-weight:700;letter-spacing:-.01em;margin-bottom:1.6rem;line-height:1.15;color:var(--ink)}
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:2.4rem;height:2.4rem;border-radius:50%;
+    background:var(--blue);color:#fff;
+    font-size:1rem;font-family:var(--mono);margin-right:.7rem;vertical-align:.18em;
+  }
+  h3{font-size:1.25rem;font-weight:600;margin-bottom:.5rem}
+  p,li{font-size:1.2rem;line-height:1.55;color:var(--ink)}
+  .lead{font-size:1.45rem;color:var(--mute);max-width:62ch;font-weight:400}
+  .mute{color:var(--mute)}
+  .strong{font-weight:700}
+  .mono{font-family:var(--mono)}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:.85rem;max-width:65ch}
+  ul li{padding-left:1.6rem;position:relative}
+  ul li::before{
+    content:"";position:absolute;left:0;top:.55rem;
+    width:.7rem;height:.7rem;background:var(--blue);
+    border-radius:2px;transform:rotate(45deg);
+  }
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:1.4rem 1.3rem;
+  }
+  .card.warn{background:var(--redsoft);border-color:#f5c2c2}
+  .card.ok{background:var(--greensoft);border-color:#a7e7cd}
+  .card.info{background:var(--bluesoft);border-color:#a8c8ee}
+  .card .tag{
+    font-family:var(--mono);font-size:.72rem;color:var(--blue);
+    text-transform:uppercase;letter-spacing:.14em;margin-bottom:.5rem;display:block;
+  }
+  .card.warn .tag{color:var(--red)}
+  .card.ok .tag{color:var(--green)}
+  .card h3{font-size:1.15rem;margin-bottom:.5rem}
+  .card p{font-size:1rem;color:var(--mute);line-height:1.5}
+
+  .box{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:1rem 1.2rem;font-family:var(--mono);font-size:1rem;line-height:1.6;
+  }
+  .box.red{background:var(--redsoft);border-color:#f0b8b8;color:#7a1d1d}
+  .box.green{background:var(--greensoft);border-color:#a7e7cd;color:#0a6b4d}
+  .box.amber{background:var(--ambersoft);border-color:#f5d68a;color:#7a4f0a}
+  .box .lbl{font-family:var(--sans);font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:var(--mute);margin-bottom:.5rem;display:block}
+  .pii{background:#fde2e2;color:#7a1d1d;padding:.1em .35em;border-radius:4px;font-weight:600}
+  .ph{background:#dbeafe;color:#0f3a7a;padding:.1em .35em;border-radius:4px;font-weight:600}
+
+  .arrow{font-family:var(--mono);font-size:1.6rem;color:var(--blue);text-align:center}
+  .row{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+
+  .pipeline{
+    display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:.8rem;align-items:center;
+  }
+  .pipeline .step{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:1rem;text-align:center;font-size:1rem;
+  }
+  .pipeline .step.user{background:var(--bluesoft);border-color:#a8c8ee}
+  .pipeline .step.local{background:var(--greensoft);border-color:#a7e7cd}
+  .pipeline .step.remote{background:#fff;border-color:var(--line)}
+  .pipeline .step .icon{font-size:1.6rem;margin-bottom:.3rem;display:block}
+  .pipeline .step .name{font-weight:700;display:block;margin-bottom:.2rem}
+  .pipeline .step .sub{font-size:.85rem;color:var(--mute);font-family:var(--mono)}
+  .pipeline .ar{font-family:var(--mono);font-size:1.4rem;color:var(--blue)}
+
+  .footer{
+    position:absolute;bottom:2.2vh;left:8vw;right:8vw;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:.72rem;color:var(--mute);
+    text-transform:uppercase;letter-spacing:.16em;
+  }
+  .nav{position:absolute;bottom:2vh;right:50%;transform:translateX(50%);display:flex;gap:.5rem}
+  .nav button{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    padding:.45rem .9rem;border-radius:8px;font-family:var(--mono);font-size:.8rem;
+    cursor:pointer;letter-spacing:.05em;
+  }
+  .nav button:hover{background:var(--soft)}
+  .progress{
+    position:absolute;top:0;left:0;height:3px;background:var(--blue);
+    transition:width .25s ease;z-index:5;
+  }
+
+  .big{font-size:3.6rem;font-weight:800;color:var(--blue);line-height:1;margin-bottom:.4rem}
+  .label{font-family:var(--mono);font-size:.78rem;color:var(--mute);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.8rem;display:block}
+
+  .toc{display:grid;grid-template-columns:1fr 1fr;gap:.9rem 2.4rem;max-width:70ch}
+  .toc .item{display:flex;gap:1rem;align-items:baseline}
+  .toc .item .n{font-family:var(--mono);color:var(--blue);font-weight:700;font-size:1.05rem;min-width:1.8rem}
+  .toc .item .t{font-size:1.15rem}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1. TITRE -->
+  <section class="slide active">
+    <span class="label">Démo · Mai 2026</span>
+    <h1>Protéger les données clients <span class="accent">quand on travaille avec l'IA</span></h1>
+    <p class="lead">Comment nos équipes peuvent utiliser un assistant de codage IA, sans qu'aucune information de client ne sorte de chez nous.</p>
+    <div class="footer">
+      <span>Zero-Trust Gateway</span><span>1 / 13</span>
+    </div>
+  </section>
+
+  <!-- 2. SOMMAIRE -->
+  <section class="slide">
+    <h2><span class="num">i</span>Au programme</h2>
+    <div class="toc">
+      <div class="item"><span class="n">1</span><span class="t">Le problème : la fuite invisible</span></div>
+      <div class="item"><span class="n">2</span><span class="t">Un exemple concret</span></div>
+      <div class="item"><span class="n">3</span><span class="t">Notre solution en une image</span></div>
+      <div class="item"><span class="n">4</span><span class="t">L'idée : le code-barres</span></div>
+      <div class="item"><span class="n">5</span><span class="t">Comment on reconnaît une donnée sensible</span></div>
+      <div class="item"><span class="n">6</span><span class="t">Le workflow d'un agent</span></div>
+      <div class="item"><span class="n">7</span><span class="t">Quatre scènes de démo</span></div>
+      <div class="item"><span class="n">8</span><span class="t">Nos garanties</span></div>
+      <div class="item"><span class="n">9</span><span class="t">Ce qui reste sur votre poste</span></div>
+      <div class="item"><span class="n">10</span><span class="t">Et si ça tombe en panne ?</span></div>
+    </div>
+    <div class="footer"><span>Sommaire</span><span>2 / 13</span></div>
+  </section>
+
+  <!-- 3. LE PROBLÈME -->
+  <section class="slide">
+    <h2><span class="num">1</span>Le problème : la fuite invisible</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead" style="margin-bottom:1.4rem">Un agent veut gagner du temps. Il copie un email client dans son assistant IA pour qu'il l'aide à rédiger une réponse.</p>
+        <ul>
+          <li>L'email contient un nom, une adresse, un numéro de contrat.</li>
+          <li>L'IA tourne sur des serveurs aux États-Unis.</li>
+          <li>Les données sont parties. On ne peut plus les rappeler.</li>
+        </ul>
+      </div>
+      <div class="card warn">
+        <span class="tag">Ce qu'on ne veut plus voir</span>
+        <h3>« J'ai juste collé deux lignes »</h3>
+        <p>Personne n'a fait exprès. C'est justement ça le problème : ça paraît anodin, mais c'est une fuite de données réglementaire.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Le problème</span><span>3 / 13</span></div>
+  </section>
+
+  <!-- 4. EXEMPLE CONCRET -->
+  <section class="slide">
+    <h2><span class="num">2</span>Un exemple concret</h2>
+    <div class="grid2">
+      <div class="box red">
+        <span class="lbl">Sans protection (ce qui part vers l'IA)</span>
+        Aide-moi à répondre à <span class="pii">Marie Dubois</span>,<br>
+        cliente domiciliée <span class="pii">12 rue du Lac, Genève</span>,<br>
+        numéro AVS <span class="pii">756.1234.5678.90</span>.
+      </div>
+      <div class="box green">
+        <span class="lbl">Avec protection (ce qui part vers l'IA)</span>
+        Aide-moi à répondre à <span class="ph">[PERSONNE_1]</span>,<br>
+        cliente domiciliée <span class="ph">[ADRESSE_1]</span>,<br>
+        numéro AVS <span class="ph">[AVS_1]</span>.
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1.6rem">L'IA répond avec les mêmes étiquettes. Sur l'écran de l'agent, les vrais noms reviennent automatiquement.</p>
+    <div class="footer"><span>Avant / après</span><span>4 / 13</span></div>
+  </section>
+
+  <!-- 5. SOLUTION EN UNE IMAGE -->
+  <section class="slide">
+    <h2><span class="num">3</span>La solution en une image</h2>
+    <div class="pipeline">
+      <div class="step user">
+        <span class="icon">·</span>
+        <span class="name">Agent</span>
+        <span class="sub">tape son message</span>
+      </div>
+      <span class="ar">→</span>
+      <div class="step local">
+        <span class="icon">·</span>
+        <span class="name">Filtre local</span>
+        <span class="sub">remplace les PII</span>
+      </div>
+      <span class="ar">→</span>
+      <div class="step remote">
+        <span class="icon">·</span>
+        <span class="name">IA Anthropic</span>
+        <span class="sub">ne voit que des étiquettes</span>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:2rem">Le filtre se met entre l'agent et l'IA. Il intercepte tout ce qui part, remplace les données sensibles, garde la liste des correspondances sur le poste.</p>
+    <div class="footer"><span>Vue d'ensemble</span><span>5 / 13</span></div>
+  </section>
+
+  <!-- 6. L'IDÉE DU CODE-BARRES -->
+  <section class="slide">
+    <h2><span class="num">4</span>L'idée : le code-barres</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead" style="margin-bottom:1.2rem">Quand vous envoyez un colis sensible, vous ne mettez pas le nom du destinataire en gros sur le carton. Vous mettez un numéro de suivi. Le transporteur livre, mais ne sait pas qui c'est.</p>
+        <p class="lead">C'est exactement ce qu'on fait avec les messages envoyés à l'IA.</p>
+      </div>
+      <div>
+        <div class="card info">
+          <span class="tag">Sur votre poste uniquement</span>
+          <h3>Le carnet de correspondances</h3>
+          <p style="font-family:var(--mono);font-size:.95rem;line-height:1.7;color:var(--ink)">
+            [PERSONNE_1] → Marie Dubois<br>
+            [ADRESSE_1] → 12 rue du Lac<br>
+            [AVS_1] → 756.1234.5678.90
+          </p>
+        </div>
+        <p class="mute" style="margin-top:.8rem;font-size:.95rem">Ce carnet n'existe que sur votre machine, en mémoire vive. Au redémarrage, il disparaît.</p>
+      </div>
+    </div>
+    <div class="footer"><span>L'analogie</span><span>6 / 13</span></div>
+  </section>
+
+  <!-- 7. COMMENT ON RECONNAÎT -->
+  <section class="slide">
+    <h2><span class="num">5</span>Comment on reconnaît une donnée sensible</h2>
+    <p class="lead" style="margin-bottom:1.6rem">Plusieurs systèmes de reconnaissance travaillent ensemble, comme des relecteurs en cascade.</p>
+    <div class="grid3">
+      <div class="card">
+        <span class="tag">Relecteur 1</span>
+        <h3>Reconnaisseur de noms</h3>
+        <p>Détecte les noms de personnes, de villes, d'entreprises, même quand ils sont écrits dans une phrase.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Relecteur 2</span>
+        <h3>Détecteur de formats</h3>
+        <p>Reconnaît les IBAN suisses, numéros AVS, téléphones, emails grâce à leur structure.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Relecteur 3</span>
+        <h3>Annuaire interne</h3>
+        <p>Sait que la colonne « num_client » d'une base contient toujours du sensible, même sans le voir.</p>
+      </div>
+    </div>
+    <p class="mute" style="margin-top:1.6rem;font-size:1.05rem">Et un quatrième relecteur intervient dans les cas ambigus, on en reparle.</p>
+    <div class="footer"><span>Les relecteurs</span><span>7 / 13</span></div>
+  </section>
+
+  <!-- 8. WORKFLOW AGENT -->
+  <section class="slide">
+    <h2><span class="num">6</span>Le workflow d'un agent</h2>
+    <ul>
+      <li>L'agent ouvre son assistant de codage comme d'habitude.</li>
+      <li>Il pose sa question, colle un tableau, décrit un dossier client.</li>
+      <li>Le filtre travaille en silence. L'agent ne fait rien de spécial.</li>
+      <li>L'IA répond. Les vrais noms reviennent sur l'écran de l'agent.</li>
+      <li>L'agent voit du français normal, lisible, avec les vrais noms.</li>
+    </ul>
+    <div class="card info" style="margin-top:1.6rem;max-width:65ch">
+      <span class="tag">Important</span>
+      <p style="color:var(--ink);font-size:1.1rem">Aucun changement d'habitude. Pas de nouveau bouton, pas de cases à cocher. La protection est invisible et automatique.</p>
+    </div>
+    <div class="footer"><span>Le quotidien</span><span>8 / 13</span></div>
+  </section>
+
+  <!-- 9. 4 SCÈNES -->
+  <section class="slide">
+    <h2><span class="num">7</span>Quatre scènes que la démo va montrer</h2>
+    <div class="grid2">
+      <div class="card">
+        <span class="tag">Scène 1</span>
+        <h3>Un tableau Excel collé</h3>
+        <p>L'agent colle une liste de clients et demande une analyse. Les noms, IBAN, adresses sont remplacés avant l'envoi.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Scène 2</span>
+        <h3>Une phrase libre</h3>
+        <p>Un texte avec nom, adresse, IBAN écrits naturellement. Le filtre les repère même dans une phrase normale.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Scène 3</span>
+        <h3>Analyse de notre base de données</h3>
+        <p>L'agent demande de regarder dans la base. Le filtre sait quelles colonnes contiennent du sensible, et masque sans regarder le contenu.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Scène 4</span>
+        <h3>Construction d'un pipeline</h3>
+        <p>L'IA explore la base et génère du code. Tout ce qu'elle voit reste anonyme.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Le programme</span><span>9 / 13</span></div>
+  </section>
+
+  <!-- 10. GARANTIES -->
+  <section class="slide">
+    <h2><span class="num">8</span>Nos garanties</h2>
+    <ul>
+      <li><span class="strong">Aucune donnée client ne quitte le poste de l'agent</span> en clair.</li>
+      <li><span class="strong">Aucune donnée n'est stockée sur disque</span>. Le carnet de correspondances vit en mémoire, et disparaît au redémarrage.</li>
+      <li><span class="strong">Aucune donnée dans les journaux serveur</span>. Si on regarde les logs, on ne trouve aucun nom de client.</li>
+      <li><span class="strong">Sécurité par défaut</span> : si le filtre tombe en panne, le message est bloqué. Pas de fuite silencieuse.</li>
+    </ul>
+    <div class="footer"><span>Promesses tenues</span><span>10 / 13</span></div>
+  </section>
+
+  <!-- 11. CE QUI RESTE LOCAL -->
+  <section class="slide">
+    <h2><span class="num">9</span>Ce qui reste sur votre poste, ce qui ne part jamais</h2>
+    <div class="grid2">
+      <div class="card ok">
+        <span class="tag">Sur votre machine, toujours</span>
+        <h3>Reste à la maison</h3>
+        <p style="line-height:1.7">· Les vrais noms, adresses, numéros<br>· Le carnet de correspondances<br>· Le détail de chaque substitution<br>· La phrase originale de l'agent</p>
+      </div>
+      <div class="card info">
+        <span class="tag">Part dehors</span>
+        <h3>Sort vers l'IA</h3>
+        <p style="line-height:1.7">· Le texte avec étiquettes [PERSONNE_1]<br>· Les questions techniques<br>· Aucune valeur réelle</p>
+      </div>
+    </div>
+    <p class="mute" style="margin-top:1.4rem;font-size:1.05rem">Pour les colonnes inconnues d'une base de données, on demande à un assistant interne de classifier le type. C'est environ 5 % des cas, et la donnée reste dans nos murs.</p>
+    <div class="footer"><span>Frontière</span><span>11 / 13</span></div>
+  </section>
+
+  <!-- 12. ET SI ÇA TOMBE -->
+  <section class="slide">
+    <h2><span class="num">10</span>Et si le filtre tombe en panne ?</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead">C'est la question qu'on s'est posée en premier.</p>
+        <ul style="margin-top:1.2rem">
+          <li>Si le filtre est éteint, l'assistant ne peut pas envoyer de message.</li>
+          <li>L'agent voit une erreur claire, comprend qu'il faut redémarrer.</li>
+          <li>Aucune chance qu'un message passe par erreur en clair.</li>
+        </ul>
+      </div>
+      <div class="card warn">
+        <span class="tag">Principe</span>
+        <h3>Bloquer plutôt que laisser fuir</h3>
+        <p>On préfère une minute de friction à une fuite de données. Pas de mode dégradé silencieux.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Mode panne</span><span>12 / 13</span></div>
+  </section>
+
+  <!-- 13. FIN -->
+  <section class="slide">
+    <h1>Place à la <span class="accent">démo</span></h1>
+    <p class="lead">Quatre scènes, quatre cas d'usage réels. On va voir en direct ce qui sort vers l'IA, et ce que l'agent voit sur son écran.</p>
+    <p class="mute" style="margin-top:2rem;font-family:var(--mono);font-size:.95rem">Des questions à tout moment.</p>
+    <div class="footer"><span>Démo</span><span>13 / 13</span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)">← Précédent</button>
+  <button onclick="go(1)">Suivant →</button>
+</div>
+
+<script>
+  const slides=document.querySelectorAll('.slide');
+  const progress=document.getElementById('progress');
+  let i=0;
+  function show(n){
+    slides[i].classList.remove('active');
+    i=(n+slides.length)%slides.length;
+    slides[i].classList.add('active');
+    progress.style.width=((i+1)/slides.length*100)+'%';
+  }
+  function go(d){show(i+d)}
+  show(0);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown')go(1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp')go(-1);
+    if(e.key==='Home')show(0);
+    if(e.key==='End')show(slides.length-1);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+# Sidecar zero-trust — stack à lancer sur la machine de chaque utilisateur.
+# Tous les services sont bindés sur 127.0.0.1 : rien n'est exposé au réseau.
+#
+# Usage :
+#   cd sidecar && docker compose up -d
+#
+# Le sidecar lit GATEWAY_URL pour appeler /api/classify_column quand le NER
+# local manque sur une colonne ambiguë (cf. plan, side-channel option (a)).
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: anon-sidecar-redis
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-changeme}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks: [sidecar_net]
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  sidecar:
+    build:
+      context: ..
+      dockerfile: sidecar/Dockerfile
+    container_name: anon-sidecar
+    environment:
+      REDIS_URL: "redis://redis:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      # Pointe vers le gateway LAN pour la KB sync + classify_column qwen
+      # HTTPS : utiliser https://host.docker.internal:3443 si certs générées
+      GATEWAY_URL: ${GATEWAY_URL:-http://host.docker.internal:8001}
+      GATEWAY_API_KEY: ${GATEWAY_API_KEY:-}
+      # CA mkcert pour faire confiance aux certs HTTPS du gateway
+      # Monté depuis ../certs/ca.pem via le volume ci-dessous
+      SSL_CERT_FILE: ${SSL_CERT_FILE:-/etc/ssl/certs/ca.pem}
+      # Origine autorisée pour les fetch CORS depuis le frontend hébergé sur le LAN
+      ANON_SIDECAR_ALLOWED_ORIGIN: ${ANON_SIDECAR_ALLOWED_ORIGIN:-http://localhost:3000}
+      # Token d'auth optionnel — si présent, X-Sidecar-Token requis sur tous les endpoints
+      ANON_SIDECAR_TOKEN: ${ANON_SIDECAR_TOKEN:-}
+      # Phase 4.6 — OAuth M2M vers le gateway. Si les 3 vars sont set, le
+      # sidecar récupère un JWT via /oauth/token et l'utilise pour ses calls
+      # au lieu du GATEWAY_API_KEY legacy.
+      OAUTH_TOKEN_URL:     ${OAUTH_TOKEN_URL:-}
+      OAUTH_CLIENT_ID:     ${OAUTH_CLIENT_ID:-}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-}
+      OAUTH_SCOPE:         ${OAUTH_SCOPE:-}
+    ports:
+      - "127.0.0.1:8787:8787"
+    extra_hosts:
+      # Permet d'atteindre Ollama (gateway) sur l'hôte sur Linux
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Cache HuggingFace pour GLiNER — sinon ~4 min de re-download à chaque
+      # rebuild d'image. Le cache est versionné par hash du modèle donc
+      # invalidé proprement si on change le modèle.
+      - hf_cache:/root/.cache/huggingface
+      # CA mkcert pour faire confiance aux certs HTTPS du gateway
+      - ../certs/ca.pem:/etc/ssl/certs/ca.pem:ro
+    depends_on:
+      - redis
+    networks: [sidecar_net]
+    restart: unless-stopped
+
+networks:
+  sidecar_net:
+    driver: bridge
+
+volumes:
+  hf_cache:
+  redis_data:

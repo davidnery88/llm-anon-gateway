@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin — Anonymisation Gateway</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #1a1a1a; }
+    .container { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 2rem; }
+    section { background: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;
+              border: 1px solid #e5e5e5; }
+    h2 { font-size: 0.875rem; font-weight: 600; text-transform: uppercase;
+         letter-spacing: 0.05em; color: #666; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.875rem; margin-bottom: 0.35rem; color: #444; }
+    input[type=text], input[type=password], input[type=number] {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d4d4d4;
+      border-radius: 6px; font-size: 0.875rem; font-family: inherit; }
+    input[type=range] { width: 100%; margin: 0.5rem 0; }
+    button { padding: 0.5rem 1rem; border-radius: 6px; border: none; font-size: 0.875rem;
+             cursor: pointer; font-family: inherit; }
+    .btn-primary { background: #1a1a1a; color: #fff; }
+    .btn-danger  { background: #dc2626; color: #fff; }
+    .btn-sm      { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+    .btn-primary:hover { background: #333; }
+    .btn-danger:hover  { background: #b91c1c; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; margin-top: 0.5rem; }
+    th { text-align: left; padding: 0.4rem 0.75rem; background: #f5f5f5;
+         border-bottom: 1px solid #e5e5e5; font-weight: 600; }
+    td { padding: 0.4rem 0.75rem; border-bottom: 1px solid #f0f0f0; font-family: monospace; }
+    td.actions { font-family: inherit; }
+    .row { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 120px; }
+    .row > button { flex: 0 0 auto; }
+    .labels-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .label-chip { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.6rem;
+                  border: 1px solid #d4d4d4; border-radius: 20px; font-size: 0.8125rem; cursor: pointer; }
+    .label-chip.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+    .empty { color: #999; font-size: 0.8125rem; padding: 0.5rem 0; }
+    .error { color: #dc2626; font-size: 0.8125rem; margin-top: 0.5rem; }
+    .success { color: #16a34a; font-size: 0.8125rem; margin-top: 0.5rem; }
+    .secret-row { display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1.5rem; }
+    .secret-row input { flex: 1; }
+    .threshold-row { display: flex; gap: 1rem; align-items: center; }
+    .threshold-row input[type=range] { flex: 1; }
+    .threshold-val { font-weight: 600; min-width: 2.5rem; text-align: right; font-family: monospace; }
+    .key-plain { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px;
+                 padding: 0.75rem; font-family: monospace; font-size: 0.875rem;
+                 word-break: break-all; margin-top: 0.75rem; }
+    .toggle-grid { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between;
+                  padding: 0.75rem 1rem; border: 1px solid #e5e5e5; border-radius: 8px; }
+    .toggle-label { font-size: 0.875rem; font-weight: 500; }
+    .toggle-desc { font-size: 0.75rem; color: #666; margin-top: 0.15rem; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #d4d4d4; border-radius: 24px;
+                     cursor: pointer; transition: background 0.2s; }
+    .toggle-slider:before { content: ""; position: absolute; width: 18px; height: 18px;
+                             left: 3px; top: 3px; background: white; border-radius: 50%;
+                             transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #16a34a; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+    .badge-gliner  { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+                     font-size: 0.7rem; font-weight: 600; background: #dbeafe; color: #1d4ed8; margin-right: 0.4rem; }
+    .badge-presidio { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+                      font-size: 0.7rem; font-weight: 600; background: #f3e8ff; color: #7e22ce; margin-right: 0.4rem; }
+    .badge-llm     { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+                     font-size: 0.7rem; font-weight: 600; background: #fef9c3; color: #854d0e; margin-right: 0.4rem; }
+    .badge-hook    { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+                     font-size: 0.7rem; font-weight: 600; background: #fee2e2; color: #b91c1c; margin-right: 0.4rem; }
+    .badge-deanon  { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+                     font-size: 0.7rem; font-weight: 600; background: #d1fae5; color: #065f46; margin-right: 0.4rem; }
+    .source-badge { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+                    font-size: 0.7rem; font-weight: 600; color: #fff; }
+    .source-static { background: #94a3b8; }
+    .source-qwen3  { background: #f59e0b; }
+    .source-admin  { background: #3b82f6; }
+    .confidence-low  { color: #dc2626; font-weight: 600; }
+    .confidence-mid  { color: #f59e0b; font-weight: 600; }
+    .confidence-high { color: #16a34a; font-weight: 600; }
+    .samples { color: #666; font-size: 0.75rem; font-style: italic; }
+    .pending-count { background: #f59e0b; color: #fff; padding: 0.1rem 0.5rem;
+                     border-radius: 10px; font-size: 0.75rem; margin-left: 0.4rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Admin — Anonymisation Gateway</h1>
+
+  <section>
+    <h2>Authentification admin</h2>
+    <div class="secret-row">
+      <input type="password" id="adminSecret" placeholder="ADMIN_SECRET">
+      <button class="btn-primary" onclick="loadAll()">Charger la configuration</button>
+    </div>
+    <div id="authStatus"></div>
+  </section>
+
+  <section id="secControls" style="display:none">
+    <h2>Contrôles</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      Activer ou désactiver chaque couche indépendamment — effet immédiat sans redémarrage.
+    </p>
+    <div class="toggle-grid">
+      <div class="toggle-row">
+        <div>
+          <span class="badge-gliner">GLiNER</span>
+          <span class="toggle-label">Détection contextuelle</span>
+          <div class="toggle-desc">Noms, dates, lieux, organisations — modèle NER encoder</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="togGliner" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <span class="badge-presidio">Presidio</span>
+          <span class="toggle-label">Patterns regex</span>
+          <div class="toggle-desc">AVS, IBAN, numéro de police, contrat — formats structurés CH</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="togPresidio" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <span class="badge-llm">qwen3-pii</span>
+          <span class="toggle-label">Fallback LLM tabulaire</span>
+          <div class="toggle-desc">Colonnes ambiguës sans libellé explicite — classification via Ollama</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="togClassifier" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <span class="badge-deanon">Dé-anon</span>
+          <span class="toggle-label">Dé-anonymisation des réponses</span>
+          <div class="toggle-desc">Si désactivé, la réponse du LLM reste tokenisée — utile pour la démo</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="togDeanon" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <span class="badge-hook">Hook</span>
+          <span class="toggle-label">Hook Claude Code</span>
+          <div class="toggle-desc">Si désactivé, les prompts Claude Code passent sans anonymisation</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="togHook" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveConfig()" style="margin-top:1rem;">Enregistrer</button>
+    <div id="controlsStatus"></div>
+  </section>
+
+  <section id="secEntities" style="display:none">
+    <h2>Entités actives</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      Désactiver une entité = elle ne sera plus détectée ni tokenisée.
+    </p>
+    <div class="labels-grid" id="labelsGrid"></div>
+    <button class="btn-primary" onclick="saveConfig()" style="margin-top:1rem;">Enregistrer</button>
+    <div id="entitiesStatus"></div>
+  </section>
+
+  <section id="secThreshold" style="display:none">
+    <h2>Seuil de confiance GLiNER</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      En dessous de ce seuil, une entité détectée par GLiNER est ignorée.
+      Valeur recommandée : 0.5. Monter à 0.7+ pour moins de faux positifs.
+    </p>
+    <div class="threshold-row">
+      <input type="range" id="thresholdRange" min="0.1" max="0.95" step="0.05"
+             oninput="syncThreshold(this.value)">
+      <span class="threshold-val" id="thresholdVal">0.50</span>
+    </div>
+    <button class="btn-primary" onclick="saveConfig()" style="margin-top:0.75rem;">Enregistrer</button>
+    <div id="thresholdStatus"></div>
+  </section>
+
+  <section id="secQwenThreshold" style="display:none">
+    <h2>Seuil d'auto-approbation Qwen3</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      Confiance minimale pour qu'une classification de colonne par qwen3-pii passe en <code>active</code>
+      sans validation humaine. En dessous, l'entrée part en <code>pending</code> (workflow admin).
+      0.5 = permissif (la KB grossit vite, faux positifs propagés). 0.7 = équilibré.
+      0.9 = strict (charge admin élevée). 1.0 = chaque classification passe par un humain.
+    </p>
+    <div class="threshold-row">
+      <input type="range" id="qwenThresholdRange" min="0.5" max="1.0" step="0.05"
+             oninput="syncQwenThreshold(this.value)">
+      <span class="threshold-val" id="qwenThresholdVal">0.70</span>
+    </div>
+    <button class="btn-primary" onclick="saveConfig()" style="margin-top:0.75rem;">Enregistrer</button>
+    <div id="qwenThresholdStatus"></div>
+  </section>
+
+  <section id="secPatterns" style="display:none">
+    <h2>Patterns personnalisés (Presidio)</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      Ajouter des expressions régulières pour détecter des identifiants internes.
+    </p>
+    <div id="patternsTable"></div>
+    <hr style="margin:1rem 0;border-color:#f0f0f0;">
+    <p style="font-size:0.8rem;font-weight:600;margin-bottom:0.5rem;">Ajouter un pattern</p>
+
+    <div style="margin-bottom:0.75rem;">
+      <label>Modèle prêt à l'emploi</label>
+      <select id="regexTemplate" onchange="applyTemplate()" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d4d4d4;border-radius:6px;font-size:0.875rem;font-family:inherit;">
+        <option value="">— Choisir un modèle —</option>
+        <option value="ref_sinistre|REF-\d{4}-\d{5}|REF_SINISTRE">Référence sinistre (REF-2025-00123)</option>
+        <option value="dossier_id|D-\d{4}-\d{4}|DOSSIER">ID dossier (D-2025-0441)</option>
+        <option value="matricule|MAT-[A-Z]{2}\d{4}|MATRICULE">Matricule employé (MAT-AB1234)</option>
+        <option value="client_id|CLI-\d{6}|CLIENT_ID">ID client (CLI-123456)</option>
+        <option value="tel_ch|\+41\s?\d{2}\s?\d{3}\s?\d{2}\s?\d{2}|TEL">Téléphone CH (+41 79 123 45 67)</option>
+        <option value="npa_ch|\b\d{4}\b|NPA">NPA suisse (1200, 3000, 8001…)</option>
+        <option value="plaque_ch|[A-Z]{2}\s?\d{1,6}|PLAQUE">Plaque immatriculation CH (GE 123456)</option>
+        <option value="code_postal_fr|\b[0-9]{5}\b|CODE_POSTAL">Code postal FR (75001)</option>
+        <option value="iban_fr|FR\d{2}[\s-]?(?:\d{4}[\s-]?){5}\d{3}|IBAN">IBAN France (FR76...)</option>
+        <option value="passport|[A-Z]{1,2}\d{6,9}|PASSEPORT">Numéro passeport</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div><label>Nom</label><input type="text" id="pName" placeholder="REF_SINISTRE"></div>
+      <div><label>Regex</label><input type="text" id="pRegex" placeholder="REF-\d{4}-\d{5}" oninput="testRegex()"></div>
+      <div><label>Label token</label><input type="text" id="pLabel" placeholder="REF_SINISTRE"></div>
+      <div><label>Score (0-1)</label><input type="number" id="pScore" value="0.8" min="0" max="1" step="0.05"></div>
+      <button class="btn-primary" onclick="createPattern()">Ajouter</button>
+    </div>
+
+    <div style="margin-top:0.75rem;padding:0.75rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+      <p style="font-size:0.8rem;font-weight:600;margin-bottom:0.4rem;">Générer depuis des exemples</p>
+      <p style="font-size:0.75rem;color:#666;margin-bottom:0.5rem;">Colle 2 à 5 valeurs réelles (une par ligne) — le pattern est généré automatiquement.</p>
+      <textarea id="pExamples" rows="3" placeholder="REF-2025-00123&#10;REF-2024-99999&#10;REF-2023-00001"
+        style="width:100%;padding:0.5rem;border:1px solid #d4d4d4;border-radius:6px;font-size:0.8rem;font-family:monospace;resize:vertical;"></textarea>
+      <div style="display:flex;gap:0.5rem;margin-top:0.4rem;align-items:center;">
+        <button class="btn-primary btn-sm" onclick="generateFromExamples()">Générer le pattern</button>
+        <span id="genStatus" style="font-size:0.8rem;color:#666;"></span>
+      </div>
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>Tester la regex sur un exemple</label>
+      <div style="display:flex;gap:0.5rem;align-items:center;margin-top:0.25rem;">
+        <input type="text" id="pTest" placeholder="Colle une valeur à tester ici" oninput="testRegex()" style="flex:1;">
+        <span id="pTestResult" style="font-size:0.8rem;min-width:120px;text-align:center;padding:0.4rem 0.75rem;border-radius:6px;"></span>
+      </div>
+    </div>
+    <div id="patternsStatus"></div>
+  </section>
+
+  <section id="secColumnLabelsActive" style="display:none">
+    <h2>Mappings de colonnes actifs</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      En-têtes de colonnes reconnus et leur label PII associé (statique, validé Qwen3, ou ajouté manuellement).
+    </p>
+    <div id="columnLabelsActiveTable"></div>
+    <hr style="margin:1rem 0;border-color:#f0f0f0;">
+    <p style="font-size:0.8rem;font-weight:600;margin-bottom:0.5rem;">Ajouter un mapping manuellement</p>
+    <div class="row">
+      <div><label>En-tête de colonne</label><input type="text" id="clHeaderInput" placeholder="num_client"></div>
+      <div>
+        <label>Label PII</label>
+        <select id="clLabelSelect" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d4d4d4;border-radius:6px;font-size:0.875rem;font-family:inherit;">
+          <option value="PERSONNE">PERSONNE</option>
+          <option value="EMAIL">EMAIL</option>
+          <option value="TEL">TEL</option>
+          <option value="AVS">AVS</option>
+          <option value="LOCALISATION">LOCALISATION</option>
+          <option value="DATE">DATE</option>
+          <option value="POLICE">POLICE</option>
+          <option value="CONTRAT">CONTRAT</option>
+          <option value="REF_SINISTRE">REF_SINISTRE</option>
+          <option value="IBAN">IBAN</option>
+          <option value="PLAQUE">PLAQUE</option>
+          <option value="VIN">VIN</option>
+          <option value="PERMIS">PERMIS</option>
+          <option value="ORG">ORG</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="createColumnLabel()">Créer</button>
+    </div>
+    <div id="columnLabelsActiveStatus"></div>
+  </section>
+
+  <section id="secColumnLabelsPending" style="display:none">
+    <h2>À valider (workflow Qwen3) <span id="pendingCountBadge" class="pending-count" style="display:none">0</span></h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      Mappings proposés automatiquement par le classifier — vérifier puis approuver ou rejeter.
+      Trié par confiance croissante (les plus incertains d'abord).
+    </p>
+    <div id="columnLabelsPendingTable"></div>
+    <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center;">
+      <button class="btn-primary btn-sm" onclick="bulkApproveSelected()">Approuver la sélection</button>
+      <span id="columnLabelsPendingStatus" style="font-size:0.8rem;color:#666;"></span>
+    </div>
+  </section>
+
+  <section id="secKeys" style="display:none">
+    <h2>Clés API</h2>
+    <div id="keysTable"></div>
+    <hr style="margin:1rem 0;border-color:#f0f0f0;">
+    <p style="font-size:0.8rem;font-weight:600;margin-bottom:0.5rem;">Créer une clé</p>
+    <div class="row">
+      <div><label>Label (nom de l'utilisateur)</label><input type="text" id="keyLabel" placeholder="Olivier"></div>
+      <button class="btn-primary" onclick="createKey()">Générer</button>
+    </div>
+    <div id="newKey"></div>
+    <div id="keysStatus"></div>
+  </section>
+
+  <section id="secDwh" style="display:none">
+    <h2>Sources de données</h2>
+    <p style="font-size:0.8rem;color:#666;margin-bottom:0.75rem;">
+      Bases de données à scanner pour pré-remplir les mappings de colonnes (column_labels).
+      Tester la connexion, choisir les bases, puis lancer le scan.
+    </p>
+    <div id="dwhTable"></div>
+
+    <hr style="margin:1rem 0;border-color:#f0f0f0;">
+    <p style="font-size:0.8rem;font-weight:600;margin-bottom:0.5rem;" id="dwhFormTitle">Ajouter une source</p>
+    <input type="hidden" id="dwhEditId" value="">
+    <div class="row">
+      <div><label>Nom</label><input type="text" id="dwhName" placeholder="DWH prod"></div>
+      <div>
+        <label>Type</label>
+        <select id="dwhType" onchange="onDwhTypeChange()" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d4d4d4;border-radius:6px;font-size:0.875rem;font-family:inherit;">
+          <option value="postgresql">postgresql</option>
+          <option value="mysql">mysql</option>
+          <option value="sqlserver">sqlserver</option>
+          <option value="sqlite">sqlite</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" style="margin-top:0.75rem;" id="dwhNetRow">
+      <div><label>Host</label><input type="text" id="dwhHost" placeholder="db.interne.local"></div>
+      <div style="flex:0 0 120px;min-width:90px;"><label>Port</label><input type="number" id="dwhPort" placeholder="5432"></div>
+      <div><label>Utilisateur</label><input type="text" id="dwhUser" placeholder="readonly"></div>
+      <div><label>Mot de passe</label><input type="password" id="dwhPass" placeholder="••••••"></div>
+    </div>
+    <div class="row" style="margin-top:0.75rem;display:none;" id="dwhSqliteRow">
+      <div><label>Chemin du fichier SQLite</label><input type="text" id="dwhSqlitePath" placeholder="/data/app.db"></div>
+    </div>
+    <div class="row" style="margin-top:0.75rem;">
+      <div><label>Filtre bases (optionnel, une par ligne — vide = toutes)</label>
+        <textarea id="dwhDbFilter" rows="2" placeholder="db_clients&#10;db_sinistres"
+          style="width:100%;padding:0.5rem;border:1px solid #d4d4d4;border-radius:6px;font-size:0.8rem;font-family:monospace;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <label class="toggle-row" style="margin-top:0.75rem;cursor:pointer;">
+      <div>
+        <span class="toggle-label">Inclure les vues</span>
+        <div class="toggle-desc">Scanner aussi les vues en plus des tables</div>
+      </div>
+      <span class="toggle-switch">
+        <input type="checkbox" id="dwhIncludeViews" checked>
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+      <button class="btn-primary" onclick="saveDwhSource()">Enregistrer</button>
+      <button class="btn-sm" id="dwhCancelEdit" onclick="resetDwhForm()" style="display:none;background:#e5e5e5;">Annuler l'édition</button>
+    </div>
+    <div id="dwhFormStatus"></div>
+
+    <div id="dwhTestPanel" style="display:none;margin-top:1rem;padding:0.75rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+      <p style="font-size:0.8rem;font-weight:600;margin-bottom:0.5rem;">
+        Bases disponibles — <span id="dwhTestSourceName"></span>
+      </p>
+      <div class="labels-grid" id="dwhDbChecks"></div>
+      <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center;">
+        <button class="btn-primary btn-sm" onclick="launchScan()">Lancer le scan</button>
+        <label style="font-size:0.8rem;color:#666;display:flex;align-items:center;gap:0.25rem;">
+          Échantillon
+          <input id="dwhSampleN" type="number" min="1" max="1000" value="10"
+                 style="width:4rem;padding:2px 6px;border:1px solid #ccc;border-radius:4px;font-size:0.8rem;">
+          valeurs
+        </label>
+        <span id="dwhTestStatus" style="font-size:0.8rem;color:#666;"></span>
+      </div>
+    </div>
+
+    <div id="dwhScanPanel" style="display:none;margin-top:1rem;padding:0.75rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+      <p style="font-size:0.8rem;font-weight:600;margin-bottom:0.5rem;">Scan en cours</p>
+      <div style="background:#e5e5e5;border-radius:6px;height:10px;overflow:hidden;">
+        <div id="dwhProgressBar" style="height:100%;width:0%;background:#16a34a;transition:width 0.3s;"></div>
+      </div>
+      <p style="font-size:0.8rem;color:#444;margin-top:0.5rem;" id="dwhProgressText">—</p>
+      <p style="font-size:0.75rem;color:#666;margin-top:0.25rem;" id="dwhProgressMeta"></p>
+      <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center;">
+        <button class="btn-danger btn-sm" id="dwhCancelScanBtn" onclick="cancelScan()">Annuler</button>
+        <span id="dwhScanStatus" style="font-size:0.8rem;"></span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const BASE_LABELS = ["PERSONNE","DATE","LOCALISATION","ORG","AVS","IBAN","TEL","EMAIL","POLICE","CONTRAT"];
+let allLabels = [...BASE_LABELS];
+let activeLabels = new Set(BASE_LABELS);
+let currentThreshold = 0.5;
+let currentQwenThreshold = 0.7;
+
+const $ = id => document.getElementById(id);
+
+function secret() { return $("adminSecret").value.trim(); }
+
+async function adminFetch(path, opts = {}) {
+  const s = secret();
+  if (!s) { alert("Entrer le secret admin."); throw new Error("no secret"); }
+  const res = await fetch(path, {
+    ...opts,
+    headers: { "X-Admin-Secret": s, "Content-Type": "application/json", ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function loadAll() {
+  try {
+    const data = await adminFetch("/admin/config");
+    activeLabels = new Set(data.active_labels);
+    currentThreshold = data.gliner_threshold;
+    currentQwenThreshold = data.qwen_auto_approve_threshold ?? 0.7;
+    // Include any custom entity labels from patterns
+    const customLabels = (data.patterns || []).map(p => p.entity_label);
+    allLabels = [...new Set([...BASE_LABELS, ...customLabels, ...data.active_labels])];
+    $("togGliner").checked    = data.gliner_enabled     ?? true;
+    $("togPresidio").checked  = data.presidio_enabled   ?? true;
+    $("togClassifier").checked= data.classifier_enabled ?? true;
+    $("togDeanon").checked    = data.deanon_enabled     ?? true;
+    $("togHook").checked      = data.hook_enabled       ?? true;
+    renderLabels();
+    renderThreshold();
+    await loadPatterns();
+    await loadColumnLabels();
+    await loadKeys();
+    await loadDwhSources();
+    ["secControls","secEntities","secThreshold","secQwenThreshold","secPatterns","secColumnLabelsActive","secColumnLabelsPending","secKeys","secDwh"].forEach(id => $(id).style.display = "");
+    $("authStatus").textContent = "";
+  } catch(e) {
+    $("authStatus").innerHTML = `<span class="error">Erreur : ${e.message}</span>`;
+  }
+}
+
+function renderLabels() {
+  $("labelsGrid").innerHTML = allLabels.map(label => `
+    <div class="label-chip ${activeLabels.has(label) ? 'active' : ''}" onclick="toggleLabel('${label}', this)">
+      ${label}
+    </div>
+  `).join("");
+}
+
+function toggleLabel(label, el) {
+  if (activeLabels.has(label)) { activeLabels.delete(label); el.classList.remove("active"); }
+  else { activeLabels.add(label); el.classList.add("active"); }
+}
+
+function renderThreshold() {
+  $("thresholdRange").value = currentThreshold;
+  $("thresholdVal").textContent = currentThreshold.toFixed(2);
+  $("qwenThresholdRange").value = currentQwenThreshold;
+  $("qwenThresholdVal").textContent = currentQwenThreshold.toFixed(2);
+}
+
+function syncThreshold(val) {
+  currentThreshold = parseFloat(val);
+  $("thresholdVal").textContent = currentThreshold.toFixed(2);
+}
+
+function syncQwenThreshold(val) {
+  currentQwenThreshold = parseFloat(val);
+  $("qwenThresholdVal").textContent = currentQwenThreshold.toFixed(2);
+}
+
+async function saveConfig() {
+  try {
+    await adminFetch("/admin/config", {
+      method: "PUT",
+      body: JSON.stringify({
+        active_labels:      [...activeLabels],
+        gliner_threshold:   currentThreshold,
+        gliner_enabled:     $("togGliner").checked,
+        presidio_enabled:   $("togPresidio").checked,
+        classifier_enabled: $("togClassifier").checked,
+        deanon_enabled:     $("togDeanon").checked,
+        hook_enabled:       $("togHook").checked,
+        qwen_auto_approve_threshold: currentQwenThreshold,
+      }),
+    });
+    $("controlsStatus").innerHTML = '<span class="success">Enregistré.</span>';
+    $("entitiesStatus").innerHTML  = '<span class="success">Enregistré.</span>';
+    $("thresholdStatus").innerHTML = '<span class="success">Enregistré.</span>';
+    $("qwenThresholdStatus").innerHTML = '<span class="success">Enregistré.</span>';
+  } catch(e) {
+    $("controlsStatus").innerHTML = `<span class="error">${e.message}</span>`;
+    $("entitiesStatus").innerHTML = `<span class="error">${e.message}</span>`;
+  }
+}
+
+async function loadPatterns() {
+  const patterns = await adminFetch("/admin/patterns");
+  if (!patterns.length) {
+    $("patternsTable").innerHTML = '<p class="empty">Aucun pattern personnalisé.</p>';
+    return;
+  }
+  const rows = patterns.map(p => `
+    <tr>
+      <td>${escapeHtml(p.name)}${p.source === "qwen" ? ' <span style="background:#fef3c7;color:#92400e;font-size:0.7rem;padding:1px 6px;border-radius:4px;font-weight:600;">à valider</span>' : ""}</td>
+      <td><code style="font-size:0.8rem">${escapeHtml(p.regex)}</code></td>
+      <td>${escapeHtml(p.entity_label)}</td>
+      <td>${p.score}</td>
+      <td class="actions">
+        <button class="btn-danger btn-sm" onclick="deletePattern(${p.id})">Supprimer</button>
+      </td>
+    </tr>`).join("");
+  $("patternsTable").innerHTML = `
+    <table>
+      <thead><tr><th>Nom</th><th>Regex</th><th>Label</th><th>Score</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function createPattern() {
+  try {
+    await adminFetch("/admin/patterns", {
+      method: "POST",
+      body: JSON.stringify({
+        name: $("pName").value.trim(),
+        regex: $("pRegex").value.trim(),
+        entity_label: $("pLabel").value.trim(),
+        score: parseFloat($("pScore").value),
+      }),
+    });
+    const newLabel = $("pLabel").value.trim();
+    if (!allLabels.includes(newLabel)) {
+      allLabels.push(newLabel);
+      activeLabels.add(newLabel);
+      renderLabels();
+    }
+    ["pName","pRegex","pLabel"].forEach(id => $(id).value = "");
+    $("pScore").value = "0.8";
+    await loadPatterns();
+    $("patternsStatus").innerHTML = '<span class="success">Pattern ajouté.</span>';
+  } catch(e) {
+    $("patternsStatus").innerHTML = `<span class="error">${e.message}</span>`;
+  }
+}
+
+async function deletePattern(id) {
+  if (!confirm("Supprimer ce pattern ?")) return;
+  await adminFetch(`/admin/patterns/${id}`, { method: "DELETE" });
+  await loadPatterns();
+}
+
+async function loadKeys() {
+  const keys = await adminFetch("/admin/keys");
+  if (!keys.length) {
+    $("keysTable").innerHTML = '<p class="empty">Aucune clé API.</p>';
+    return;
+  }
+  const rows = keys.map(k => `
+    <tr>
+      <td>${k.id}</td>
+      <td>${k.label || "—"}</td>
+      <td>${k.user_id}</td>
+      <td>${k.active ? "✓ active" : "révoquée"}</td>
+      <td>${k.created_at?.slice(0,10) || ""}</td>
+      <td class="actions">
+        ${k.active ? `<button class="btn-danger btn-sm" onclick="revokeKey(${k.id})">Révoquer</button>` : ""}
+      </td>
+    </tr>`).join("");
+  $("keysTable").innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>Label</th><th>User ID</th><th>Statut</th><th>Créée le</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function createKey() {
+  try {
+    const label = $("keyLabel").value.trim();
+    if (!label) { alert("Entrer un label."); return; }
+    const data = await adminFetch("/admin/keys", {
+      method: "POST",
+      body: JSON.stringify({ label }),
+    });
+    $("newKey").innerHTML = `
+      <p class="success" style="margin-top:0.5rem;">Clé générée — copier maintenant, elle ne sera plus affichée :</p>
+      <div class="key-plain">${data.plain_key}</div>`;
+    $("keyLabel").value = "";
+    await loadKeys();
+  } catch(e) {
+    $("keysStatus").innerHTML = `<span class="error">${e.message}</span>`;
+  }
+}
+
+function tokenize(s) {
+  const tokens = [];
+  let i = 0;
+  while (i < s.length) {
+    if (/\d/.test(s[i])) {
+      let j = i; while (j < s.length && /\d/.test(s[j])) j++;
+      tokens.push({ type: 'digits', value: s.slice(i,j), len: j-i }); i = j;
+    } else if (/[A-Z]/.test(s[i])) {
+      let j = i; while (j < s.length && /[A-Z]/.test(s[j])) j++;
+      tokens.push({ type: 'upper', value: s.slice(i,j), len: j-i }); i = j;
+    } else if (/[a-z]/.test(s[i])) {
+      let j = i; while (j < s.length && /[a-z]/.test(s[j])) j++;
+      tokens.push({ type: 'lower', value: s.slice(i,j), len: j-i }); i = j;
+    } else {
+      tokens.push({ type: 'literal', value: s[i], len: 1 }); i++;
+    }
+  }
+  return tokens;
+}
+
+function escapeRegex(s) {
+  return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+function generateFromExamples() {
+  const lines = $("pExamples").value.split('\n').map(l => l.trim()).filter(Boolean);
+  const statusEl = $("genStatus");
+  if (lines.length < 2) {
+    statusEl.textContent = "Besoin d'au moins 2 exemples."; return;
+  }
+
+  const tokenized = lines.map(tokenize);
+  const lengths = tokenized.map(t => t.length);
+
+  if (new Set(lengths).size > 1) {
+    statusEl.textContent = "Structure trop variable — ajoute des exemples plus homogènes."; return;
+  }
+
+  const numTokens = lengths[0];
+  let pattern = '';
+
+  for (let i = 0; i < numTokens; i++) {
+    const segs = tokenized.map(t => t[i]);
+    const types = new Set(segs.map(s => s.type));
+    const lens  = segs.map(s => s.len);
+    const minL  = Math.min(...lens), maxL = Math.max(...lens);
+
+    if (types.size > 1) {
+      pattern += '.+'; continue;
+    }
+    const type = [...types][0];
+    const vals = segs.map(s => s.value);
+
+    if (type === 'literal') {
+      pattern += new Set(vals).size === 1 ? escapeRegex(vals[0]) : '.';
+    } else if (type === 'digits') {
+      pattern += minL === maxL
+        ? (minL === 1 ? '\\d' : `\\d{${minL}}`)
+        : `\\d{${minL},${maxL}}`;
+    } else if (type === 'upper') {
+      pattern += minL === maxL
+        ? (minL === 1 ? '[A-Z]' : `[A-Z]{${minL}}`)
+        : `[A-Z]{${minL},${maxL}}`;
+    } else if (type === 'lower') {
+      pattern += minL === maxL
+        ? (minL === 1 ? '[a-z]' : `[a-z]{${minL}}`)
+        : `[a-z]{${minL},${maxL}}`;
+    }
+  }
+
+  $("pRegex").value = pattern;
+  // Pré-remplir le champ test avec le premier exemple
+  $("pTest").value = lines[0];
+  testRegex();
+
+  // Vérifier que tous les exemples matchent
+  const allMatch = lines.every(l => new RegExp(`^${pattern}$`).test(l));
+  statusEl.textContent = allMatch
+    ? `✓ Pattern généré — correspond à ${lines.length}/${lines.length} exemples`
+    : `⚠ Généré mais ne couvre pas tous les exemples`;
+  statusEl.style.color = allMatch ? '#16a34a' : '#b45309';
+}
+
+function applyTemplate() {
+  const val = $("regexTemplate").value;
+  if (!val) return;
+  const [name, regex, label] = val.split("|");
+  $("pName").value  = name;
+  $("pRegex").value = regex;
+  $("pLabel").value = label;
+  testRegex();
+}
+
+function testRegex() {
+  const pattern = $("pRegex").value.trim();
+  const sample  = $("pTest").value.trim();
+  const el = $("pTestResult");
+  if (!pattern) { el.textContent = ""; el.style = ""; return; }
+  if (!sample)  { el.textContent = ""; el.style = ""; return; }
+  try {
+    const match = new RegExp(pattern).test(sample);
+    el.textContent = match ? "✓ Correspondance" : "✗ Pas de match";
+    el.style.cssText = match
+      ? "background:#d1fae5;color:#065f46;font-size:0.8rem;min-width:120px;text-align:center;padding:0.4rem 0.75rem;border-radius:6px;"
+      : "background:#fee2e2;color:#b91c1c;font-size:0.8rem;min-width:120px;text-align:center;padding:0.4rem 0.75rem;border-radius:6px;";
+  } catch(e) {
+    el.textContent = "Regex invalide";
+    el.style.cssText = "background:#fef9c3;color:#854d0e;font-size:0.8rem;min-width:120px;text-align:center;padding:0.4rem 0.75rem;border-radius:6px;";
+  }
+}
+
+function escapeHtml(s) {
+  if (s == null) return "";
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function confidenceClass(c) {
+  if (c == null) return "";
+  if (c < 0.5) return "confidence-low";
+  if (c < 0.7) return "confidence-mid";
+  return "confidence-high";
+}
+
+function truncate(s, n) {
+  if (s == null) return "";
+  const str = String(s);
+  return str.length > n ? str.slice(0, n) + "…" : str;
+}
+
+function formatSamples(sv) {
+  if (!sv) return "";
+  let arr = sv;
+  if (typeof sv === "string") {
+    try { arr = JSON.parse(sv); } catch { return truncate(sv, 60); }
+  }
+  if (!Array.isArray(arr)) return truncate(String(sv), 60);
+  return truncate(arr.join(", "), 60);
+}
+
+async function loadColumnLabels() {
+  const [active, pending] = await Promise.all([
+    adminFetch("/admin/column_labels?status=active"),
+    adminFetch("/admin/column_labels?status=pending"),
+  ]);
+  renderActiveColumnLabels(active);
+  renderPendingColumnLabels(pending);
+}
+
+function renderActiveColumnLabels(items) {
+  if (!items.length) {
+    $("columnLabelsActiveTable").innerHTML = '<p class="empty">Aucun mapping actif.</p>';
+    return;
+  }
+  const rows = items.map(it => `
+    <tr>
+      <td>${escapeHtml(it.header_norm)}</td>
+      <td>${escapeHtml(it.header_raw)}</td>
+      <td>${escapeHtml(it.label)}</td>
+      <td><span class="source-badge source-${escapeHtml(it.source)}">${escapeHtml(it.source)}</span></td>
+      <td>${it.occurrences ?? 0}</td>
+      <td class="actions">
+        <button class="btn-sm" onclick="editColumnLabel(${it.id}, '${escapeHtml(it.label)}')">Modifier</button>
+        <button class="btn-danger btn-sm" onclick="deleteColumnLabel(${it.id})">Supprimer</button>
+      </td>
+    </tr>`).join("");
+  $("columnLabelsActiveTable").innerHTML = `
+    <table>
+      <thead><tr><th>header_norm</th><th>header_raw</th><th>Label</th><th>Source</th><th>Occ.</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderPendingColumnLabels(items) {
+  const badge = $("pendingCountBadge");
+  if (items.length > 0) {
+    badge.textContent = items.length;
+    badge.style.display = "";
+  } else {
+    badge.style.display = "none";
+  }
+  if (!items.length) {
+    $("columnLabelsPendingTable").innerHTML = '<p class="empty">Aucun mapping à valider.</p>';
+    return;
+  }
+  // Sort by confidence ascending (most uncertain first)
+  const sorted = [...items].sort((a, b) => (a.confidence ?? 0) - (b.confidence ?? 0));
+  const rows = sorted.map(it => {
+    const conf = it.confidence ?? 0;
+    return `
+    <tr>
+      <td><input type="checkbox" class="pending-check" data-id="${it.id}"></td>
+      <td>${escapeHtml(it.header_raw)}</td>
+      <td><span id="pendingLabel_${it.id}">${escapeHtml(it.label)}</span></td>
+      <td><span class="${confidenceClass(conf)}">${conf.toFixed(2)}</span></td>
+      <td class="samples">${escapeHtml(formatSamples(it.sample_values))}</td>
+      <td class="actions">
+        <button class="btn-primary btn-sm" onclick="approveColumnLabel(${it.id})">Approuver</button>
+        <button class="btn-danger btn-sm" onclick="rejectColumnLabel(${it.id})">Rejeter</button>
+        <button class="btn-sm" onclick="editColumnLabel(${it.id}, '${escapeHtml(it.label)}')">Modifier</button>
+      </td>
+    </tr>`;
+  }).join("");
+  $("columnLabelsPendingTable").innerHTML = `
+    <table>
+      <thead><tr><th></th><th>header_raw</th><th>Label</th><th>Conf.</th><th>Échantillon</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function createColumnLabel() {
+  const header = $("clHeaderInput").value.trim();
+  const label = $("clLabelSelect").value;
+  if (!header || !label) return;
+  try {
+    await adminFetch("/admin/column_labels", {
+      method: "POST",
+      body: JSON.stringify({ header, label }),
+    });
+    $("clHeaderInput").value = "";
+    $("columnLabelsActiveStatus").innerHTML = '<span class="success">Mapping ajouté.</span>';
+    await loadColumnLabels();
+  } catch(e) {
+    $("columnLabelsActiveStatus").innerHTML = `<span class="error">${e.message}</span>`;
+  }
+}
+
+async function editColumnLabel(id, currentLabel) {
+  const nv = prompt("Nouveau label :", currentLabel);
+  if (!nv || nv.trim() === "" || nv === currentLabel) return;
+  await adminFetch(`/admin/column_labels/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ label: nv.trim() }),
+  });
+  await loadColumnLabels();
+}
+
+async function approveColumnLabel(id) {
+  await adminFetch(`/admin/column_labels/${id}/approve`, { method: "POST" });
+  await loadColumnLabels();
+}
+
+async function rejectColumnLabel(id) {
+  await adminFetch(`/admin/column_labels/${id}/reject`, { method: "POST" });
+  await loadColumnLabels();
+}
+
+async function deleteColumnLabel(id) {
+  if (!confirm("Supprimer ce mapping ?")) return;
+  await adminFetch(`/admin/column_labels/${id}`, { method: "DELETE" });
+  await loadColumnLabels();
+}
+
+async function bulkApproveSelected() {
+  const checked = Array.from(document.querySelectorAll(".pending-check:checked"));
+  const ids = checked.map(c => parseInt(c.dataset.id));
+  if (ids.length === 0) {
+    $("columnLabelsPendingStatus").textContent = "Aucune ligne sélectionnée.";
+    return;
+  }
+  const res = await adminFetch("/admin/column_labels/bulk_approve", {
+    method: "POST",
+    body: JSON.stringify({ label_ids: ids }),
+  });
+  $("columnLabelsPendingStatus").textContent = `${res.approved} mapping(s) approuvé(s).`;
+  await loadColumnLabels();
+}
+
+async function revokeKey(id) {
+  if (!confirm("Révoquer cette clé ? L'utilisateur perdra l'accès immédiatement.")) return;
+  await adminFetch(`/admin/keys/${id}`, { method: "DELETE" });
+  await loadKeys();
+}
+
+// ---- Sources de données (DWH) ----
+let dwhSources = [];
+let dwhScan = { timer: null, jobId: null };
+
+function parseOptions(opts) {
+  if (!opts) return {};
+  if (typeof opts === "string") {
+    try { return JSON.parse(opts); } catch { return {}; }
+  }
+  return opts;
+}
+
+async function loadDwhSources() {
+  dwhSources = await adminFetch("/admin/dwh_sources");
+  renderDwhSources();
+}
+
+function renderDwhSources() {
+  if (!dwhSources.length) {
+    $("dwhTable").innerHTML = '<p class="empty">Aucune source configurée.</p>';
+    return;
+  }
+  const rows = dwhSources.map(s => {
+    const last = s.last_scan_at
+      ? `${escapeHtml(s.last_scan_status || "—")} · ${String(s.last_scan_at).slice(0,16).replace("T"," ")}`
+      : "jamais scanné";
+    return `
+    <tr>
+      <td class="actions">${escapeHtml(s.name)}</td>
+      <td class="actions"><span class="source-badge source-admin">${escapeHtml(s.db_type)}</span></td>
+      <td>${escapeHtml(s.host || "—")}</td>
+      <td class="actions">${last}</td>
+      <td class="actions">
+        <button class="btn-sm" onclick="editDwhSource(${s.id})">Éditer</button>
+        <button class="btn-sm" onclick="testDwhSource(${s.id})">Tester</button>
+        <button class="btn-danger btn-sm" onclick="deleteDwhSource(${s.id})">Supprimer</button>
+      </td>
+    </tr>`;
+  }).join("");
+  $("dwhTable").innerHTML = `
+    <table>
+      <thead><tr><th>Nom</th><th>Type</th><th>Host</th><th>Dernier scan</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function onDwhTypeChange() {
+  const isSqlite = $("dwhType").value === "sqlite";
+  $("dwhSqliteRow").style.display = isSqlite ? "" : "none";
+  $("dwhNetRow").style.display = isSqlite ? "none" : "";
+}
+
+function resetDwhForm() {
+  $("dwhEditId").value = "";
+  $("dwhName").value = "";
+  $("dwhType").value = "postgresql";
+  $("dwhHost").value = "";
+  $("dwhPort").value = "";
+  $("dwhUser").value = "";
+  $("dwhPass").value = "";
+  $("dwhPass").placeholder = "••••••";
+  $("dwhSqlitePath").value = "";
+  $("dwhDbFilter").value = "";
+  $("dwhIncludeViews").checked = true;
+  $("dwhFormTitle").textContent = "Ajouter une source";
+  $("dwhCancelEdit").style.display = "none";
+  $("dwhFormStatus").innerHTML = "";
+  onDwhTypeChange();
+}
+
+function editDwhSource(id) {
+  const s = dwhSources.find(x => x.id === id);
+  if (!s) return;
+  const opts = parseOptions(s.options);
+  $("dwhEditId").value = s.id;
+  $("dwhName").value = s.name || "";
+  $("dwhType").value = s.db_type || "postgresql";
+  $("dwhHost").value = s.host || "";
+  $("dwhPort").value = s.port ?? "";
+  $("dwhUser").value = s.username || "";
+  $("dwhPass").value = "";
+  $("dwhPass").placeholder = "inchangé";
+  $("dwhSqlitePath").value = opts.sqlite_path || "";
+  $("dwhDbFilter").value = (s.db_filter || []).join("\n");
+  $("dwhIncludeViews").checked = opts.include_views !== false;
+  $("dwhFormTitle").textContent = `Éditer « ${s.name} »`;
+  $("dwhCancelEdit").style.display = "";
+  onDwhTypeChange();
+  $("secDwh").scrollIntoView({ behavior: "smooth" });
+}
+
+function buildDwhBody() {
+  const dbFilter = $("dwhDbFilter").value.split("\n").map(l => l.trim()).filter(Boolean);
+  const options = { include_views: $("dwhIncludeViews").checked };
+  if ($("dwhType").value === "sqlite") {
+    const p = $("dwhSqlitePath").value.trim();
+    if (p) options.sqlite_path = p;
+  }
+  return {
+    name: $("dwhName").value.trim(),
+    db_type: $("dwhType").value,
+    host: $("dwhHost").value.trim() || null,
+    port: $("dwhPort").value ? parseInt($("dwhPort").value) : null,
+    username: $("dwhUser").value.trim() || null,
+    password: $("dwhPass").value || null,
+    options,
+    db_filter: dbFilter,
+  };
+}
+
+async function saveDwhSource() {
+  const body = buildDwhBody();
+  if (!body.name) { $("dwhFormStatus").innerHTML = '<span class="error">Le nom est requis.</span>'; return; }
+  const id = $("dwhEditId").value;
+  try {
+    if (id) {
+      await adminFetch(`/admin/dwh_sources/${id}`, { method: "PUT", body: JSON.stringify(body) });
+    } else {
+      await adminFetch("/admin/dwh_sources", { method: "POST", body: JSON.stringify(body) });
+    }
+    resetDwhForm();
+    await loadDwhSources();
+    $("dwhFormStatus").innerHTML = '<span class="success">Enregistré.</span>';
+  } catch(e) {
+    $("dwhFormStatus").innerHTML = `<span class="error">${e.message}</span>`;
+  }
+}
+
+async function deleteDwhSource(id) {
+  if (!confirm("Supprimer cette source ?")) return;
+  await adminFetch(`/admin/dwh_sources/${id}`, { method: "DELETE" });
+  await loadDwhSources();
+}
+
+async function testDwhSource(id) {
+  const s = dwhSources.find(x => x.id === id);
+  $("dwhScanPanel").style.display = "none";
+  $("dwhTestStatus").textContent = "Connexion en cours…";
+  $("dwhTestStatus").style.color = "#666";
+  $("dwhTestPanel").style.display = "";
+  $("dwhTestSourceName").textContent = s ? s.name : `#${id}`;
+  $("dwhDbChecks").innerHTML = "";
+  $("dwhTestPanel").dataset.sourceId = id;
+  try {
+    const res = await adminFetch(`/admin/dwh_sources/${id}/test`, { method: "POST" });
+    const dbs = res.databases || [];
+    if (!dbs.length) {
+      $("dwhDbChecks").innerHTML = '<p class="empty">Aucune base retournée.</p>';
+    } else {
+      $("dwhDbChecks").innerHTML = dbs.map(db => `
+        <label class="label-chip">
+          <input type="checkbox" class="dwh-db-check" value="${escapeHtml(db)}" checked>
+          ${escapeHtml(db)}
+        </label>`).join("");
+    }
+    $("dwhTestStatus").textContent = `${dbs.length} base(s) trouvée(s).`;
+    $("dwhTestStatus").style.color = "#16a34a";
+  } catch(e) {
+    $("dwhTestStatus").textContent = e.message;
+    $("dwhTestStatus").style.color = "#dc2626";
+  }
+}
+
+async function launchScan() {
+  const id = $("dwhTestPanel").dataset.sourceId;
+  if (!id) return;
+  const dbs = Array.from(document.querySelectorAll(".dwh-db-check:checked")).map(c => c.value);
+  try {
+    const sampleN = parseInt($("dwhSampleN")?.value || "10", 10);
+    const res = await adminFetch(`/admin/dwh_sources/${id}/scan`, {
+      method: "POST",
+      body: JSON.stringify({ dbs, sample_n: sampleN }),
+    });
+    dwhScan.jobId = res.job_id;
+    $("dwhScanPanel").style.display = "";
+    $("dwhScanStatus").textContent = "";
+    $("dwhCancelScanBtn").disabled = false;
+    $("dwhProgressBar").style.width = "0%";
+    $("dwhProgressText").textContent = "Démarrage…";
+    $("dwhProgressMeta").textContent = "";
+    pollScan();
+  } catch(e) {
+    $("dwhTestStatus").textContent = e.message;
+    $("dwhTestStatus").style.color = "#dc2626";
+  }
+}
+
+function stopScanPolling() {
+  if (dwhScan.timer) { clearTimeout(dwhScan.timer); dwhScan.timer = null; }
+}
+
+async function pollScan() {
+  if (!dwhScan.jobId) return;
+  try {
+    const j = await adminFetch(`/admin/dwh_sources/scan/${dwhScan.jobId}`);
+    const total = j.total_cols || 0;
+    const scanned = j.scanned_cols || 0;
+    const pct = total > 0 ? Math.round((scanned / total) * 100) : 0;
+    $("dwhProgressBar").style.width = pct + "%";
+    $("dwhProgressText").textContent = `${scanned} / ${total} colonnes (${pct}%) — ${j.found_labels || 0} label(s) trouvé(s)`;
+    const loc = [j.current_db, j.current_table].filter(Boolean).join(" · ");
+    $("dwhProgressMeta").textContent = loc ? `En cours : ${loc}` : "";
+
+    if (["done", "failed", "cancelled"].includes(j.status)) {
+      stopScanPolling();
+      $("dwhCancelScanBtn").disabled = true;
+      if (j.status === "done") {
+        $("dwhScanStatus").innerHTML = `<span class="success">Scan terminé — ${j.found_labels || 0} colonne(s) classée(s), voir « À valider ».</span>`;
+        await loadColumnLabels();
+        await loadDwhSources();
+      } else if (j.status === "cancelled") {
+        $("dwhScanStatus").innerHTML = '<span class="error">Scan annulé.</span>';
+        await loadDwhSources();
+      } else {
+        $("dwhScanStatus").innerHTML = `<span class="error">Scan échoué : ${escapeHtml(j.error || "")}</span>`;
+        await loadDwhSources();
+      }
+      return;
+    }
+    dwhScan.timer = setTimeout(pollScan, 1000);
+  } catch(e) {
+    stopScanPolling();
+    $("dwhScanStatus").innerHTML = `<span class="error">${e.message}</span>`;
+  }
+}
+
+async function cancelScan() {
+  if (!dwhScan.jobId) return;
+  try {
+    await adminFetch(`/admin/dwh_sources/scan/${dwhScan.jobId}/cancel`, { method: "POST" });
+    $("dwhScanStatus").textContent = "Annulation demandée…";
+  } catch(e) {
+    $("dwhScanStatus").innerHTML = `<span class="error">${e.message}</span>`;
+  }
+}
+</script>
+</body>
+</html>

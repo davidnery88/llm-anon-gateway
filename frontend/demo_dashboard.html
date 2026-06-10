@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Détections PII — dashboard démo</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --panel: #ffffff;
+    --border: #d0d7de;
+    --text: #1f2328;
+    --muted: #656d76;
+    --accent: #0969da;
+    --gliner: #0969da;
+    --presidio: #1f883d;
+    --kb: #6e7781;
+    --qwen3: #bf6c0c;
+    --row-hover: #f6f8fa;
+    --ok: #1f883d;
+    --warn: #9a6700;
+    --err: #cf222e;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100%;
+  }
+  body { display: flex; flex-direction: column; }
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: flex; align-items: center; gap: 24px;
+  }
+  h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  .status {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 6px rgba(31,136,61,0.5); }
+  .dot.err { background: var(--err); }
+  .dot.warn { background: var(--warn); }
+  .btn {
+    background: var(--panel); color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; font-family: inherit;
+  }
+  .btn:hover { background: var(--row-hover); }
+
+  main {
+    flex: 1; overflow: hidden;
+    display: flex; flex-direction: column;
+    padding: 24px;
+  }
+  .section-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin: 0 0 12px; font-weight: 600;
+  }
+  .stream {
+    flex: 1; overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .stream-empty {
+    padding: 60px 40px; text-align: center; color: var(--muted);
+    font-size: 14px;
+  }
+  .stream-empty .hint {
+    margin-top: 12px; font-size: 12px; color: var(--muted);
+  }
+
+  /* Une ligne = un prompt */
+  .prompt-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 80px;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    animation: slideIn 0.2s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-3px); background: #eaf4ff; }
+    to { opacity: 1; transform: translateY(0); background: transparent; }
+  }
+  .prompt-row:hover { background: var(--row-hover); }
+  .prompt-row:last-child { border-bottom: none; }
+
+  .timestamp {
+    color: var(--muted);
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 12px;
+  }
+  .layers {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .layer {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f6f8fa;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .layer.active.gliner   { background: #ddf4ff; color: var(--gliner); border-color: #54aeff; }
+  .layer.active.presidio { background: #dafbe1; color: var(--presidio); border-color: #4ac26b; }
+  .layer.active.kb       { background: #eaecf0; color: var(--kb); border-color: #afb8c1; font-weight: 600; }
+  .layer.active.qwen3    { background: #fff1cc; color: var(--qwen3); border-color: #d4a72c; }
+  .layer .count {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .layer.inactive {
+    opacity: 0.35;
+  }
+  .layer-detail {
+    font-size: 11px; color: var(--muted);
+    margin-left: 4px;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .total {
+    text-align: right;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .total small {
+    font-weight: normal;
+    color: var(--muted);
+    display: block;
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  footer {
+    padding: 10px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    font-size: 11px; color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+  code {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    padding: 1px 5px;
+    background: var(--row-hover);
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Détections PII — démo zero-trust</h1>
+  <div class="status" id="status">
+    <div class="dot warn"></div>
+    <span id="status-text">connexion…</span>
+  </div>
+  <div style="margin-left: auto;">
+    <button class="btn" id="btn-clear">Effacer écran</button>
+  </div>
+</header>
+
+<main>
+  <div class="section-title">Prompts récents — une ligne par requête anonymisée</div>
+  <div class="stream" id="stream">
+    <div class="stream-empty">
+      En attente de prompts…
+      <div class="hint">Déclenche une anonymisation pour voir quelles couches se sont déclenchées.</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>Sidecar : <code id="sidecar-url"></code></span>
+  <span><span id="prompt-count">0</span> prompts</span>
+</footer>
+
+<script>
+  const SIDECAR_URL = 'http://127.0.0.1:8787';
+  // Délai max entre 2 events pour les regrouper dans le même "prompt"
+  const GROUP_WINDOW_MS = 2500;
+
+  document.getElementById('sidecar-url').textContent = SIDECAR_URL;
+
+  const stream = document.getElementById('stream');
+  const statusDot = document.querySelector('.status .dot');
+  const statusText = document.getElementById('status-text');
+
+  let promptCount = 0;
+  let currentGroup = null;
+  let currentGroupRow = null;
+  let evtSource = null;
+
+  function setStatus(state, text) {
+    statusDot.className = 'dot ' + state;
+    statusText.textContent = text;
+  }
+
+  function newGroup(ev) {
+    return {
+      first_ts: ev.ts,
+      last_ts: ev.ts,
+      counts: { gliner: 0, presidio: 0, presidio_safety: 0, kb_exact: 0, kb_fuzzy: 0, qwen3: 0 },
+      kb_fields: new Set(),
+      qwen3_fields: new Set(),
+      total: 0,
+    };
+  }
+
+  function buildRow(g) {
+    const date = new Date(g.first_ts * 1000);
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+
+    const gliner = g.counts.gliner;
+    const presidio = g.counts.presidio + g.counts.presidio_safety;
+    const kb = g.counts.kb_exact + g.counts.kb_fuzzy;
+    const qwen3 = g.counts.qwen3;
+
+    const kbDetail = g.kb_fields.size > 0
+      ? `<span class="layer-detail">${[...g.kb_fields].slice(0,4).join(', ')}</span>`
+      : '';
+    const qwenDetail = g.qwen3_fields.size > 0
+      ? `<span class="layer-detail">${[...g.qwen3_fields].slice(0,3).join(', ')}</span>`
+      : '';
+
+    return `
+      <div class="timestamp">${hh}:${mm}:${ss}</div>
+      <div class="layers">
+        <span class="layer gliner ${gliner > 0 ? 'active' : 'inactive'}">
+          GLiNER ${gliner > 0 ? `<span class="count">${gliner}</span>` : ''}
+        </span>
+        <span class="layer presidio ${presidio > 0 ? 'active' : 'inactive'}">
+          Presidio ${presidio > 0 ? `<span class="count">${presidio}</span>` : ''}
+        </span>
+        <span class="layer kb ${kb > 0 ? 'active' : 'inactive'}">
+          KB cache ${kb > 0 ? `<span class="count">${kb}</span>` : ''}${kbDetail}
+        </span>
+        <span class="layer qwen3 ${qwen3 > 0 ? 'active' : 'inactive'}">
+          Qwen3 ${qwen3 > 0 ? `<span class="count">${qwen3}</span>` : ''}${qwenDetail}
+        </span>
+      </div>
+      <div class="total">
+        ${g.total}
+        <small>${g.total > 1 ? 'PII' : 'PII'} détectée${g.total > 1 ? 's' : ''}</small>
+      </div>
+    `;
+  }
+
+  function handleEvent(ev) {
+    // Premier event : vider le placeholder
+    if (currentGroup === null && stream.querySelector('.stream-empty')) {
+      stream.innerHTML = '';
+    }
+
+    // Nouveau groupe si pas de courant OU délai dépassé
+    const isNewGroup = currentGroup === null
+      || (ev.ts * 1000 - currentGroup.last_ts * 1000) > GROUP_WINDOW_MS;
+
+    if (isNewGroup) {
+      currentGroup = newGroup(ev);
+      currentGroupRow = document.createElement('div');
+      currentGroupRow.className = 'prompt-row';
+      stream.insertBefore(currentGroupRow, stream.firstChild);
+      promptCount++;
+      document.getElementById('prompt-count').textContent = promptCount;
+    }
+
+    // Mise à jour du groupe courant
+    currentGroup.last_ts = ev.ts;
+    currentGroup.total++;
+    if (ev.source in currentGroup.counts) currentGroup.counts[ev.source]++;
+    if ((ev.source === 'kb_exact' || ev.source === 'kb_fuzzy') && ev.field) {
+      currentGroup.kb_fields.add(ev.field);
+    }
+    if (ev.source === 'qwen3' && ev.field) {
+      currentGroup.qwen3_fields.add(ev.field);
+    }
+
+    currentGroupRow.innerHTML = buildRow(currentGroup);
+
+    // Limite à 100 prompts affichés
+    while (stream.children.length > 100) stream.removeChild(stream.lastChild);
+  }
+
+  function connect() {
+    setStatus('warn', 'connexion…');
+    if (evtSource) evtSource.close();
+    evtSource = new EventSource(`${SIDECAR_URL}/events`);
+
+    evtSource.onopen = () => {
+      setStatus('ok', `connecté à ${SIDECAR_URL}`);
+    };
+    evtSource.onerror = () => {
+      setStatus('err', 'déconnecté — reconnexion auto');
+    };
+    evtSource.onmessage = (e) => {
+      try {
+        const ev = JSON.parse(e.data);
+        handleEvent(ev);
+      } catch (err) {
+        console.error('parse error', err, e.data);
+      }
+    };
+  }
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    stream.innerHTML = '<div class="stream-empty">Stream effacé.<div class="hint">Les nouveaux prompts apparaîtront ici.</div></div>';
+    currentGroup = null;
+    currentGroupRow = null;
+    promptCount = 0;
+    document.getElementById('prompt-count').textContent = '0';
+  });
+
+  connect();
+</script>
+</body>
+</html>

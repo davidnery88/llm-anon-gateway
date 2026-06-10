@@ -1,0 +1,220 @@
+{"tokenized_text": ["La", "colonne", "immatriculation", "contient", "SZ", "-", "314071", "."], "ner": [[4, 6, "LICENSE_PLATE"]]}
+{"tokenized_text": ["police_number", ":", "P552492"], "ner": [[2, 2, "POLICY"]]}
+{"tokenized_text": ["avs", ":", "756", "6169", "2958", "78"], "ner": [[2, 5, "ID"]]}
+{"tokenized_text": ["La", "colonne", "ahv", "contient", "756", ".", "9041", ".", "8342", ".", "12", "."], "ner": [[4, 10, "ID"]]}
+{"tokenized_text": ["La", "colonne", "sozialversicherungsnummer", "contient", "756", "3042", "5670", "20", "."], "ner": [[4, 7, "ID"]]}
+{"tokenized_text": ["ASSU", "/", "2025", "/", "42077", "est", "la", "valeur", "de", "contrat", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "bank_account", "contient", "CH94", "0022", "8391", "1192", "6921", "2", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["ASSU", ".", "2023", ".", "41927", "est", "la", "valeur", "de", "contract", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["756", ".", "9939", ".", "3947", ".", "97", "est", "la", "valeur", "de", "avs", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["P820208", "est", "la", "valeur", "de", "police", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["Seestrasse", "113", ",", "7791", "Vevey", "est", "la", "valeur", "de", "adresse_complete", "."], "ner": [[0, 4, "ADDRESS"]]}
+{"tokenized_text": ["immatriculation", ":", "BS724249"], "ner": [[2, 2, "LICENSE_PLATE"]]}
+{"tokenized_text": ["La", "colonne", "prenom", "contient", "Laura", "Simon", "."], "ner": [[4, 5, "PERSON"]]}
+{"tokenized_text": ["La", "colonne", "ahv", "contient", "756", ".", "3851", ".", "5930", ".", "61", "."], "ner": [[4, 10, "ID"]]}
+{"tokenized_text": ["La", "colonne", "license_plate", "contient", "SZ", "-", "847076", "."], "ner": [[4, 6, "LICENSE_PLATE"]]}
+{"tokenized_text": ["immatriculation", ":", "OW719572"], "ner": [[2, 2, "LICENSE_PLATE"]]}
+{"tokenized_text": ["CH22", "0483", "5865", "8902", "6012", "7", "est", "la", "valeur", "de", "iban_ch", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["ASSU", "/", "2024", "/", "99787", "est", "la", "valeur", "de", "vertrag", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["ahv", ":", "7561878688211"], "ner": [[2, 2, "ID"]]}
+{"tokenized_text": ["Jacques", "Moser", "est", "la", "valeur", "de", "nachname", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["numero_avs", ":", "756", "1298", "6940", "49"], "ner": [[2, 5, "ID"]]}
+{"tokenized_text": ["versicherungsschein", ":", "P", "-", "636174"], "ner": [[2, 4, "POLICY"]]}
+{"tokenized_text": ["handy", ":", "+", "41", "32", "5502727"], "ner": [[2, 5, "PHONE"]]}
+{"tokenized_text": ["Francesco", "Schmid", "est", "la", "valeur", "de", "nachname", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["contract", ":", "ASSU", "/", "2021", "/", "82476"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["avs", ":", "756", "-", "2389", "-", "5649", "-", "75"], "ner": [[2, 8, "ID"]]}
+{"tokenized_text": ["Dorfstrasse", "2", ",", "1867", "Fribourg", "est", "la", "valeur", "de", "adresse_complete", "."], "ner": [[0, 4, "ADDRESS"]]}
+{"tokenized_text": ["La", "colonne", "contract", "contient", "ASSU202578740", "."], "ner": [[4, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "avs", "contient", "7562545258894", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["police", ":", "ASSU", "/", "2024", "/", "31928"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["P217108", "est", "la", "valeur", "de", "police", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "iban", "contient", "CH65", "0076", "2397", "2652", "7354", "3", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["756", "-", "7340", "-", "2929", "-", "43", "est", "la", "valeur", "de", "sozialversicherungsnummer", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["POL456082", "est", "la", "valeur", "de", "versicherungsschein", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["Francesco", "Frei", "est", "la", "valeur", "de", "nachname", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["Sara", "Baumann", "est", "la", "valeur", "de", "client_nom", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["La", "colonne", "avs", "contient", "756", "-", "1717", "-", "4268", "-", "15", "."], "ner": [[4, 10, "ID"]]}
+{"tokenized_text": ["numero_avs", ":", "7567537711866"], "ner": [[2, 2, "ID"]]}
+{"tokenized_text": ["La", "colonne", "no_police", "contient", "POL736956", "."], "ner": [[4, 4, "POLICY"]]}
+{"tokenized_text": ["bank_account", ":", "CH33", "0076", "7842", "5799", "1366", "2"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["license_plate", ":", "JU", "119075"], "ner": [[2, 3, "LICENSE_PLATE"]]}
+{"tokenized_text": ["vehicule", ":", "AI", "-", "479996"], "ner": [[2, 4, "LICENSE_PLATE"]]}
+{"tokenized_text": ["+", "41", "21", "785", "93", "11", "est", "la", "valeur", "de", "handy", "."], "ner": [[0, 5, "PHONE"]]}
+{"tokenized_text": ["ahv", ":", "756", "7809", "8272", "72"], "ner": [[2, 5, "ID"]]}
+{"tokenized_text": ["La", "colonne", "police", "contient", "POLICE767671", "."], "ner": [[4, 4, "POLICY"]]}
+{"tokenized_text": ["756", ".", "8348", ".", "7184", ".", "58", "est", "la", "valeur", "de", "ahv", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["contract", ":", "ASSU", "-", "2020", "-", "25238"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "tel", "contient", "+", "41", "32", "7113322", "."], "ner": [[4, 7, "PHONE"]]}
+{"tokenized_text": ["versicherungsschein", ":", "POLICE", "-", "212024"], "ner": [[2, 4, "POLICY"]]}
+{"tokenized_text": ["immatriculation", ":", "FR868168"], "ner": [[2, 2, "LICENSE_PLATE"]]}
+{"tokenized_text": ["tel", ":", "+", "41", "33", "1160256"], "ner": [[2, 5, "PHONE"]]}
+{"tokenized_text": ["versicherungsschein", ":", "P593050"], "ner": [[2, 2, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "vehicule", "contient", "FR455194", "."], "ner": [[4, 4, "LICENSE_PLATE"]]}
+{"tokenized_text": ["mobil", ":", "+", "41", ".", "41", ".", "652", ".", "7172"], "ner": [[2, 9, "PHONE"]]}
+{"tokenized_text": ["+", "41", ".", "55", ".", "396", ".", "7275", "est", "la", "valeur", "de", "handy", "."], "ner": [[0, 7, "PHONE"]]}
+{"tokenized_text": ["iban_ch", ":", "CH32", "0076", "7927", "5037", "3145", "3"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["Daniel", "Petit", "est", "la", "valeur", "de", "prenom", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["756", "2916", "3999", "57", "est", "la", "valeur", "de", "numero_avs", "."], "ner": [[0, 3, "ID"]]}
+{"tokenized_text": ["POLICE857962", "est", "la", "valeur", "de", "no_police", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "no_avs", "contient", "756", "-", "3321", "-", "6707", "-", "49", "."], "ner": [[4, 10, "ID"]]}
+{"tokenized_text": ["La", "colonne", "tel", "contient", "+", "41", "44", "620", "95", "20", "."], "ner": [[4, 9, "PHONE"]]}
+{"tokenized_text": ["756", "-", "1713", "-", "7338", "-", "57", "est", "la", "valeur", "de", "ahv", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["Bahnhofstrasse", "186", ",", "5519", "Lugano", "est", "la", "valeur", "de", "adresse", "."], "ner": [[0, 4, "ADDRESS"]]}
+{"tokenized_text": ["La", "colonne", "immatriculation", "contient", "VS774669", "."], "ner": [[4, 4, "LICENSE_PLATE"]]}
+{"tokenized_text": ["Maria", "Esposito", "est", "la", "valeur", "de", "prenom", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["La", "colonne", "compte", "contient", "CH58", "0870", "5829", "9629", "1450", "4", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["P177582", "est", "la", "valeur", "de", "no_police", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "bank_account", "contient", "CH29", "0900", "0832", "0679", "9813", "6", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "tel", "contient", "+", "41", "81", "597", "77", "90", "."], "ner": [[4, 9, "PHONE"]]}
+{"tokenized_text": ["ASSU", ".", "2023", ".", "48564", "est", "la", "valeur", "de", "contrat", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "license_plate", "contient", "SZ984576", "."], "ner": [[4, 4, "LICENSE_PLATE"]]}
+{"tokenized_text": ["756", "-", "3280", "-", "5961", "-", "40", "est", "la", "valeur", "de", "ahv", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["Andreas", "Dubois", "est", "la", "valeur", "de", "client_nom", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["La", "colonne", "no_contrat", "contient", "ASSU", "/", "2025", "/", "21701", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["ASSU", "-", "2024", "-", "35544", "est", "la", "valeur", "de", "vertrag", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "vorname", "contient", "Nathalie", "Fontana", "."], "ner": [[4, 5, "PERSON"]]}
+{"tokenized_text": ["immatriculation", ":", "GR748227"], "ner": [[2, 2, "LICENSE_PLATE"]]}
+{"tokenized_text": ["Avenue", "de", "la", "Gare", "63", ",", "4700", "Martigny", "est", "la", "valeur", "de", "adresse_complete", "."], "ner": [[0, 7, "ADDRESS"]]}
+{"tokenized_text": ["CH58", "0076", "7735", "7790", "7141", "6", "est", "la", "valeur", "de", "konto", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["+", "41", "31", "6636515", "est", "la", "valeur", "de", "tel", "."], "ner": [[0, 3, "PHONE"]]}
+{"tokenized_text": ["La", "colonne", "adresse", "contient", "Chemin", "des", "Fleurs", "8", ",", "9109", "Bern", "."], "ner": [[4, 10, "ADDRESS"]]}
+{"tokenized_text": ["756", "9856", "6435", "59", "est", "la", "valeur", "de", "ahv", "."], "ner": [[0, 3, "ID"]]}
+{"tokenized_text": ["POL", "-", "283120", "est", "la", "valeur", "de", "versicherungsschein", "."], "ner": [[0, 2, "POLICY"]]}
+{"tokenized_text": ["P238094", "est", "la", "valeur", "de", "versicherungsschein", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["nom", ":", "Sophie", "Frei"], "ner": [[2, 3, "PERSON"]]}
+{"tokenized_text": ["police", ":", "ASSU", ".", "2025", ".", "76608"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["CH43", "0483", "5333", "9521", "1179", "0", "est", "la", "valeur", "de", "iban_ch", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "police", "contient", "ASSU", "/", "2025", "/", "81654", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "phone", "contient", "+", "41", "52", "5356690", "."], "ner": [[4, 7, "PHONE"]]}
+{"tokenized_text": ["La", "colonne", "mobil", "contient", "032", "742", "20", "91", "."], "ner": [[4, 7, "PHONE"]]}
+{"tokenized_text": ["La", "colonne", "numero_avs", "contient", "756", "-", "7821", "-", "7688", "-", "29", "."], "ner": [[4, 10, "ID"]]}
+{"tokenized_text": ["La", "colonne", "client_nom", "contient", "Daniel", "Fischer", "."], "ner": [[4, 5, "PERSON"]]}
+{"tokenized_text": ["756", ".", "7105", ".", "3131", ".", "81", "est", "la", "valeur", "de", "no_avs", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["contrat", ":", "ASSU", ".", "2026", ".", "28426"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["avs", ":", "756", "-", "8933", "-", "5530", "-", "85"], "ner": [[2, 8, "ID"]]}
+{"tokenized_text": ["CH25", "0840", "1064", "8422", "9405", "7", "est", "la", "valeur", "de", "bank_account", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["compte", ":", "CH93", "0483", "5581", "1288", "0133", "6"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["no_police", ":", "P", "-", "706395"], "ner": [[2, 4, "POLICY"]]}
+{"tokenized_text": ["CH28", "0076", "2517", "9086", "4168", "6", "est", "la", "valeur", "de", "konto", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["contrat", ":", "ASSU", "-", "2023", "-", "59063"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["ASSU", "-", "2026", "-", "91957", "est", "la", "valeur", "de", "no_contrat", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "phone", "contient", "+", "41", "56", "8356521", "."], "ner": [[4, 7, "PHONE"]]}
+{"tokenized_text": ["police_number", ":", "P", "-", "122913"], "ner": [[2, 4, "POLICY"]]}
+{"tokenized_text": ["756", "2530", "9234", "92", "est", "la", "valeur", "de", "sozialversicherungsnummer", "."], "ner": [[0, 3, "ID"]]}
+{"tokenized_text": ["natel", ":", "+", "41", "91", "4852008"], "ner": [[2, 5, "PHONE"]]}
+{"tokenized_text": ["756", "2391", "1861", "29", "est", "la", "valeur", "de", "numero_avs", "."], "ner": [[0, 3, "ID"]]}
+{"tokenized_text": ["bank_account", ":", "CH37", "0024", "3157", "2791", "9409", "6"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "ahv", "contient", "756", "3481", "7765", "98", "."], "ner": [[4, 7, "ID"]]}
+{"tokenized_text": ["numero_avs", ":", "756", ".", "5397", ".", "9079", ".", "28"], "ner": [[2, 8, "ID"]]}
+{"tokenized_text": ["Chiara", "Brunner", "est", "la", "valeur", "de", "vorname", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["contract", ":", "ASSU", "-", "2025", "-", "80283"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "no_avs", "contient", "7563870870876", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["contrat", ":", "ASSU", ".", "2020", ".", "14677"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["756", "-", "3526", "-", "3804", "-", "94", "est", "la", "valeur", "de", "sozialversicherungsnummer", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["bank_account", ":", "CH29", "0022", "8766", "3723", "9504", "1"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["prenom", ":", "Marie", "Richard"], "ner": [[2, 3, "PERSON"]]}
+{"tokenized_text": ["La", "colonne", "compte", "contient", "CH32", "0840", "1818", "1845", "1848", "9", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["iban", ":", "CH88", "0076", "7499", "9393", "3051", "7"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["contract", ":", "ASSU", "-", "2022", "-", "54128"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["bank_account", ":", "CH76", "0832", "4487", "9206", "9804", "2"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["JU157783", "est", "la", "valeur", "de", "immatriculation", "."], "ner": [[0, 0, "LICENSE_PLATE"]]}
+{"tokenized_text": ["POL612867", "est", "la", "valeur", "de", "no_police", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "iban_ch", "contient", "CH40", "0870", "5413", "2611", "1780", "0", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "numero_avs", "contient", "756", ".", "8491", ".", "6180", ".", "19", "."], "ner": [[4, 10, "ID"]]}
+{"tokenized_text": ["La", "colonne", "adresse", "contient", "Route", "de", "Genève", "158", ",", "2042", "Montreux", "."], "ner": [[4, 10, "ADDRESS"]]}
+{"tokenized_text": ["756", ".", "8873", ".", "7081", ".", "80", "est", "la", "valeur", "de", "no_avs", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["ASSU202260538", "est", "la", "valeur", "de", "no_contrat", "."], "ner": [[0, 0, "CONTRACT"]]}
+{"tokenized_text": ["license_plate", ":", "LU", "457421"], "ner": [[2, 3, "LICENSE_PLATE"]]}
+{"tokenized_text": ["La", "colonne", "avs", "contient", "756", "6442", "7745", "95", "."], "ner": [[4, 7, "ID"]]}
+{"tokenized_text": ["phone", ":", "+", "41", "31", "1082555"], "ner": [[2, 5, "PHONE"]]}
+{"tokenized_text": ["bank_account", ":", "CH95", "0024", "3684", "6081", "0620", "0"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["police_number", ":", "POLICE728180"], "ner": [[2, 2, "POLICY"]]}
+{"tokenized_text": ["P", "-", "335082", "est", "la", "valeur", "de", "police", "."], "ner": [[0, 2, "POLICY"]]}
+{"tokenized_text": ["Route", "de", "Genève", "175", ",", "3713", "Winterthur", "est", "la", "valeur", "de", "adresse", "."], "ner": [[0, 6, "ADDRESS"]]}
+{"tokenized_text": ["La", "colonne", "vertrag", "contient", "ASSU", "/", "2021", "/", "11398", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "contract", "contient", "ASSU", "/", "2025", "/", "65389", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "numero_avs", "contient", "756", "4290", "8848", "50", "."], "ner": [[4, 7, "ID"]]}
+{"tokenized_text": ["756", "-", "8373", "-", "5246", "-", "41", "est", "la", "valeur", "de", "ahv", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["La", "colonne", "no_contrat", "contient", "ASSU", ".", "2022", ".", "99006", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "immatriculation", "contient", "GE420516", "."], "ner": [[4, 4, "LICENSE_PLATE"]]}
+{"tokenized_text": ["contract", ":", "ASSU", "-", "2026", "-", "73556"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["ASSU", "-", "2021", "-", "70370", "est", "la", "valeur", "de", "contract", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["CH19", "0022", "8413", "8113", "8633", "8", "est", "la", "valeur", "de", "iban", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "iban_ch", "contient", "CH52", "0900", "0794", "1552", "1667", "4", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["POLICE440401", "est", "la", "valeur", "de", "police", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["bank_account", ":", "CH83", "0024", "3935", "8891", "6375", "6"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "no_avs", "contient", "7564764446398", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["no_police", ":", "POLICE", "-", "316456"], "ner": [[2, 4, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "nom", "contient", "Chiara", "Meier", "."], "ner": [[4, 5, "PERSON"]]}
+{"tokenized_text": ["052", "354", "44", "39", "est", "la", "valeur", "de", "tel", "."], "ner": [[0, 3, "PHONE"]]}
+{"tokenized_text": ["ASSU202060741", "est", "la", "valeur", "de", "contract", "."], "ner": [[0, 0, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "handy", "contient", "+", "41", "91", "404", "45", "66", "."], "ner": [[4, 9, "PHONE"]]}
+{"tokenized_text": ["Maria", "Keller", "est", "la", "valeur", "de", "client_nom", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["La", "colonne", "versicherungsschein", "contient", "POLICE150901", "."], "ner": [[4, 4, "POLICY"]]}
+{"tokenized_text": ["ASSU", "/", "2026", "/", "95674", "est", "la", "valeur", "de", "vertrag", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["POLICE623019", "est", "la", "valeur", "de", "no_police", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "contrat", "contient", "ASSU", "/", "2020", "/", "89827", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "ahv", "contient", "7562195198130", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["La", "colonne", "police", "contient", "ASSU", "-", "2023", "-", "40783", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["ASSU", ".", "2024", ".", "37585", "est", "la", "valeur", "de", "contrat", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "numero_avs", "contient", "7561106361599", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["+", "41", "31", "0414596", "est", "la", "valeur", "de", "telephone", "."], "ner": [[0, 3, "PHONE"]]}
+{"tokenized_text": ["ASSU", ".", "2022", ".", "63983", "est", "la", "valeur", "de", "contract", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "name", "contient", "Michel", "Frei", "."], "ner": [[4, 5, "PERSON"]]}
+{"tokenized_text": ["numero_avs", ":", "756", "3249", "2789", "88"], "ner": [[2, 5, "ID"]]}
+{"tokenized_text": ["756", "-", "2479", "-", "7464", "-", "11", "est", "la", "valeur", "de", "numero_avs", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["Valérie", "Richard", "est", "la", "valeur", "de", "nachname", "."], "ner": [[0, 1, "PERSON"]]}
+{"tokenized_text": ["POL421107", "est", "la", "valeur", "de", "police_number", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["CH99", "0891", "4127", "3585", "7306", "5", "est", "la", "valeur", "de", "iban_ch", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "kennzeichen", "contient", "FR20670", "."], "ner": [[4, 4, "LICENSE_PLATE"]]}
+{"tokenized_text": ["kennzeichen", ":", "ZH99908"], "ner": [[2, 2, "LICENSE_PLATE"]]}
+{"tokenized_text": ["La", "colonne", "iban", "contient", "CH32", "0483", "5557", "7027", "2785", "7", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["CH52", "0900", "0661", "3906", "0480", "5", "est", "la", "valeur", "de", "iban", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["756", "9882", "5757", "48", "est", "la", "valeur", "de", "no_avs", "."], "ner": [[0, 3, "ID"]]}
+{"tokenized_text": ["ASSU", ".", "2025", ".", "61595", "est", "la", "valeur", "de", "contract", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["La", "colonne", "no_avs", "contient", "7562336545866", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["numero_avs", ":", "756", "-", "4836", "-", "6224", "-", "83"], "ner": [[2, 8, "ID"]]}
+{"tokenized_text": ["056", "170", "61", "71", "est", "la", "valeur", "de", "tel", "."], "ner": [[0, 3, "PHONE"]]}
+{"tokenized_text": ["756", "-", "9734", "-", "6608", "-", "79", "est", "la", "valeur", "de", "ahv", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["La", "colonne", "adresse_complete", "contient", "Hauptstrasse", "101", ",", "4168", "Winterthur", "."], "ner": [[4, 8, "ADDRESS"]]}
+{"tokenized_text": ["La", "colonne", "iban", "contient", "CH16", "0024", "3167", "6184", "7230", "4", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["756", "-", "6070", "-", "8684", "-", "34", "est", "la", "valeur", "de", "avs", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["+", "41", "21", "438", "30", "34", "est", "la", "valeur", "de", "tel", "."], "ner": [[0, 5, "PHONE"]]}
+{"tokenized_text": ["sozialversicherungsnummer", ":", "756", "8019", "7543", "56"], "ner": [[2, 5, "ID"]]}
+{"tokenized_text": ["La", "colonne", "handy", "contient", "+", "41", "55", "057", "39", "76", "."], "ner": [[4, 9, "PHONE"]]}
+{"tokenized_text": ["sozialversicherungsnummer", ":", "756", "4598", "6313", "17"], "ner": [[2, 5, "ID"]]}
+{"tokenized_text": ["La", "colonne", "numero_avs", "contient", "756", "7293", "7850", "41", "."], "ner": [[4, 7, "ID"]]}
+{"tokenized_text": ["La", "colonne", "konto", "contient", "CH87", "0023", "0827", "2318", "4322", "2", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "contrat", "contient", "ASSU", ".", "2021", ".", "45989", "."], "ner": [[4, 8, "CONTRACT"]]}
+{"tokenized_text": ["ahv", ":", "7561693814712"], "ner": [[2, 2, "ID"]]}
+{"tokenized_text": ["+", "41", "31", "8839774", "est", "la", "valeur", "de", "mobil", "."], "ner": [[0, 3, "PHONE"]]}
+{"tokenized_text": ["7565505998451", "est", "la", "valeur", "de", "avs", "."], "ner": [[0, 0, "ID"]]}
+{"tokenized_text": ["compte", ":", "CH84", "0483", "5213", "3480", "3965", "2"], "ner": [[2, 7, "IBAN"]]}
+{"tokenized_text": ["La", "colonne", "versicherungsschein", "contient", "POL", "-", "146397", "."], "ner": [[4, 6, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "iban", "contient", "CH23", "0900", "0542", "6221", "8909", "2", "."], "ner": [[4, 9, "IBAN"]]}
+{"tokenized_text": ["mobil", ":", "+", "41", "61", "684", "59", "09"], "ner": [[2, 7, "PHONE"]]}
+{"tokenized_text": ["La", "colonne", "name", "contient", "Valérie", "Zimmermann", "."], "ner": [[4, 5, "PERSON"]]}
+{"tokenized_text": ["ZG", "515139", "est", "la", "valeur", "de", "kennzeichen", "."], "ner": [[0, 1, "LICENSE_PLATE"]]}
+{"tokenized_text": ["POL919176", "est", "la", "valeur", "de", "versicherungsschein", "."], "ner": [[0, 0, "POLICY"]]}
+{"tokenized_text": ["contrat", ":", "ASSU", "-", "2021", "-", "78149"], "ner": [[2, 6, "CONTRACT"]]}
+{"tokenized_text": ["ASSU", ".", "2022", ".", "50863", "est", "la", "valeur", "de", "contract", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["ASSU", "-", "2023", "-", "40221", "est", "la", "valeur", "de", "contrat", "."], "ner": [[0, 4, "CONTRACT"]]}
+{"tokenized_text": ["CH94", "0023", "0728", "3268", "4245", "0", "est", "la", "valeur", "de", "konto", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["P", "-", "362081", "est", "la", "valeur", "de", "police_number", "."], "ner": [[0, 2, "POLICY"]]}
+{"tokenized_text": ["La", "colonne", "numero_avs", "contient", "7568033762691", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["address", ":", "Avenue", "de", "la", "Gare", "152", ",", "8106", "Lugano"], "ner": [[2, 9, "ADDRESS"]]}
+{"tokenized_text": ["La", "colonne", "numero_avs", "contient", "7567698394827", "."], "ner": [[4, 4, "ID"]]}
+{"tokenized_text": ["756", "-", "3222", "-", "7367", "-", "68", "est", "la", "valeur", "de", "sozialversicherungsnummer", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["756", ".", "8054", ".", "3937", ".", "23", "est", "la", "valeur", "de", "sozialversicherungsnummer", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["756", "-", "3758", "-", "6302", "-", "47", "est", "la", "valeur", "de", "sozialversicherungsnummer", "."], "ner": [[0, 6, "ID"]]}
+{"tokenized_text": ["POLICE", "-", "822460", "est", "la", "valeur", "de", "police_number", "."], "ner": [[0, 2, "POLICY"]]}
+{"tokenized_text": ["+", "41", "31", "7722560", "est", "la", "valeur", "de", "phone", "."], "ner": [[0, 3, "PHONE"]]}
+{"tokenized_text": ["CH24", "0839", "0069", "3751", "5093", "9", "est", "la", "valeur", "de", "bank_account", "."], "ner": [[0, 5, "IBAN"]]}
+{"tokenized_text": ["GL", "-", "950887", "est", "la", "valeur", "de", "vehicule", "."], "ner": [[0, 2, "LICENSE_PLATE"]]}
+{"tokenized_text": ["Avenue", "de", "la", "Gare", "138", ",", "3109", "Bern", "est", "la", "valeur", "de", "adresse_complete", "."], "ner": [[0, 7, "ADDRESS"]]}
+{"tokenized_text": ["numero_avs", ":", "756", ".", "1258", ".", "3854", ".", "43"], "ner": [[2, 8, "ID"]]}
+{"tokenized_text": ["La", "colonne", "ahv", "contient", "756", "-", "4858", "-", "8319", "-", "44", "."], "ner": [[4, 10, "ID"]]}
+{"tokenized_text": ["La", "colonne", "nom", "contient", "Urs", "Gerber", "."], "ner": [[4, 5, "PERSON"]]}
+{"tokenized_text": ["La", "colonne", "immatriculation", "contient", "BE", "-", "313049", "."], "ner": [[4, 6, "LICENSE_PLATE"]]}
+{"tokenized_text": ["police_number", ":", "POL443367"], "ner": [[2, 2, "POLICY"]]}

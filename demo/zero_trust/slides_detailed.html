@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Zero-Trust LLM Gateway — Architecture · Démo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232c;
+    --ink:#e6edf3; --mute:#8b949e; --dim:#6e7681;
+    --line:#30363d; --softline:#21262d;
+    --blue:#58a6ff; --bluesoft:#1f3b5f;
+    --green:#3fb950; --greensoft:#1e3a26;
+    --red:#f85149; --redsoft:#3d1e1e;
+    --amber:#d29922; --ambersoft:#3a2e10;
+    --purple:#bc8cff; --purplesoft:#2d1f4a;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+  .deck{height:100vh;width:100vw;position:relative;}
+  .slide{
+    position:absolute;inset:0;padding:4.5vh 7vw 7vh;
+    display:none;flex-direction:column;justify-content:center;
+    background:
+      radial-gradient(900px 500px at 90% -10%,rgba(88,166,255,.07),transparent 60%),
+      radial-gradient(700px 400px at 0% 110%,rgba(63,185,80,.05),transparent 60%);
+    animation:fade .3s ease both;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  h1{font-size:3.3rem;font-weight:800;letter-spacing:-.02em;line-height:1.05;margin-bottom:1.2rem}
+  h1 .accent{color:var(--blue)}
+  h2{font-size:2.05rem;font-weight:700;letter-spacing:-.01em;margin-bottom:1.5rem;line-height:1.15}
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:2.4rem;height:2.4rem;border-radius:50%;
+    border:1px solid var(--blue);color:var(--blue);background:rgba(88,166,255,.08);
+    font-size:1rem;font-family:var(--mono);margin-right:.7rem;vertical-align:.18em;
+  }
+  h3{font-size:1.2rem;font-weight:600;margin-bottom:.5rem;color:var(--ink)}
+  p,li{font-size:1.12rem;line-height:1.55;color:var(--ink)}
+  .lead{font-size:1.35rem;color:var(--mute);max-width:70ch;font-weight:400}
+  .mute{color:var(--mute)}
+  .dim{color:var(--dim)}
+  .mono{font-family:var(--mono)}
+  .strong{font-weight:700;color:var(--ink)}
+  .blue{color:var(--blue)}
+  .green{color:var(--green)}
+  .red{color:var(--red)}
+  .amber{color:var(--amber)}
+  .purple{color:var(--purple)}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:.75rem;max-width:72ch}
+  ul li{padding-left:1.4rem;position:relative;font-size:1.1rem}
+  ul li::before{
+    content:"";position:absolute;left:0;top:.6rem;
+    width:.55rem;height:.55rem;background:var(--blue);
+    border-radius:1px;transform:rotate(45deg);
+  }
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;align-items:start}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:1.3rem 1.2rem;
+  }
+  .card.warn{border-color:rgba(248,81,73,.45);background:linear-gradient(180deg,var(--panel),rgba(248,81,73,.04))}
+  .card.ok{border-color:rgba(63,185,80,.45);background:linear-gradient(180deg,var(--panel),rgba(63,185,80,.04))}
+  .card.info{border-color:rgba(88,166,255,.45);background:linear-gradient(180deg,var(--panel),rgba(88,166,255,.04))}
+  .card.amber{border-color:rgba(210,153,34,.45);background:linear-gradient(180deg,var(--panel),rgba(210,153,34,.04))}
+  .card.purple{border-color:rgba(188,140,255,.45);background:linear-gradient(180deg,var(--panel),rgba(188,140,255,.04))}
+  .card .tag{
+    font-family:var(--mono);font-size:.72rem;color:var(--blue);
+    text-transform:uppercase;letter-spacing:.14em;margin-bottom:.5rem;display:block;
+  }
+  .card.warn .tag{color:var(--red)}
+  .card.ok .tag{color:var(--green)}
+  .card.amber .tag{color:var(--amber)}
+  .card.purple .tag{color:var(--purple)}
+  .card h3{font-size:1.1rem;margin-bottom:.5rem}
+  .card p{font-size:.98rem;color:var(--mute);line-height:1.55}
+  .card .meta{font-family:var(--mono);font-size:.78rem;color:var(--dim);margin-top:.6rem;display:block}
+
+  pre{
+    background:#0a0e13;border:1px solid var(--softline);border-radius:10px;
+    padding:1rem 1.2rem;font-family:var(--mono);font-size:.92rem;line-height:1.6;
+    overflow:auto;white-space:pre;color:var(--ink);
+  }
+  .codetitle{font-family:var(--mono);font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.5rem;display:block}
+
+  .pii{background:rgba(248,81,73,.15);color:#ffb4b1;padding:.1em .3em;border-radius:3px}
+  .ph{background:rgba(88,166,255,.18);color:#a8d1ff;padding:.1em .3em;border-radius:3px}
+  .kw{color:var(--purple)}
+  .str{color:var(--green)}
+  .cmt{color:var(--dim)}
+
+  .footer{
+    position:absolute;bottom:2vh;left:7vw;right:7vw;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:.72rem;color:var(--dim);
+    text-transform:uppercase;letter-spacing:.16em;
+  }
+  .nav{position:absolute;bottom:1.8vh;right:50%;transform:translateX(50%);display:flex;gap:.5rem}
+  .nav button{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    padding:.45rem .9rem;border-radius:8px;font-family:var(--mono);font-size:.78rem;
+    cursor:pointer;letter-spacing:.05em;
+  }
+  .nav button:hover{background:var(--panel2);border-color:var(--blue)}
+  .progress{
+    position:absolute;top:0;left:0;height:2px;background:var(--blue);
+    transition:width .25s ease;z-index:5;
+  }
+
+  .label{font-family:var(--mono);font-size:.74rem;color:var(--dim);text-transform:uppercase;letter-spacing:.16em;margin-bottom:.8rem;display:block}
+
+  .toc{display:grid;grid-template-columns:1fr 1fr;gap:.8rem 2.4rem;max-width:75ch}
+  .toc .item{display:flex;gap:.9rem;align-items:baseline}
+  .toc .item .n{font-family:var(--mono);color:var(--blue);font-weight:700;font-size:1rem;min-width:1.6rem}
+  .toc .item .t{font-size:1.08rem}
+
+  /* SVG diagram styles */
+  svg{display:block;width:100%;height:auto;max-height:62vh}
+  svg .b-fill{fill:var(--panel)}
+  svg .b-stroke{stroke:var(--line);stroke-width:1.2}
+  svg .b-blue{fill:rgba(88,166,255,.08);stroke:var(--blue);stroke-width:1.4}
+  svg .b-green{fill:rgba(63,185,80,.08);stroke:var(--green);stroke-width:1.4}
+  svg .b-red{fill:rgba(248,81,73,.08);stroke:var(--red);stroke-width:1.4}
+  svg .b-amber{fill:rgba(210,153,34,.08);stroke:var(--amber);stroke-width:1.4}
+  svg .b-purple{fill:rgba(188,140,255,.08);stroke:var(--purple);stroke-width:1.4}
+  svg .t{font-family:var(--sans);font-size:14px;fill:var(--ink);font-weight:600}
+  svg .t-sm{font-family:var(--mono);font-size:11px;fill:var(--mute)}
+  svg .t-mini{font-family:var(--mono);font-size:10px;fill:var(--dim)}
+  svg .arrow{stroke:var(--blue);stroke-width:1.4;fill:none;marker-end:url(#arr)}
+  svg .arrow-d{stroke:var(--mute);stroke-width:1;fill:none;stroke-dasharray:4 3;marker-end:url(#arrd)}
+  svg .arrow-r{stroke:var(--red);stroke-width:1.4;fill:none;marker-end:url(#arrr)}
+  svg .zone{fill:none;stroke:var(--softline);stroke-width:1;stroke-dasharray:6 4;rx:14}
+  svg .zone-lbl{font-family:var(--mono);font-size:11px;fill:var(--dim);text-transform:uppercase;letter-spacing:.14em}
+
+  .legend{display:flex;gap:1.4rem;flex-wrap:wrap;font-family:var(--mono);font-size:.82rem;color:var(--mute);margin-top:1rem}
+  .legend .sw{display:inline-block;width:.9rem;height:.9rem;border-radius:3px;vertical-align:-.15em;margin-right:.4rem}
+  .legend .b{background:rgba(88,166,255,.4);border:1px solid var(--blue)}
+  .legend .g{background:rgba(63,185,80,.4);border:1px solid var(--green)}
+  .legend .a{background:rgba(210,153,34,.4);border:1px solid var(--amber)}
+  .legend .r{background:rgba(248,81,73,.4);border:1px solid var(--red)}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1. TITRE -->
+  <section class="slide active">
+    <span class="label">Démo · Architecture · Mai 2026</span>
+    <h1>Zero-Trust LLM <span class="accent">Anonymization Gateway</span></h1>
+    <p class="lead">Architecture, composants, garanties. Comment on protège les données clients quand les équipes utilisent Claude Code, sans casser leur workflow.</p>
+    <div class="footer"><span>feat/zero-trust-gateway</span><span>1 / 16</span></div>
+  </section>
+
+  <!-- 2. SOMMAIRE -->
+  <section class="slide">
+    <h2><span class="num">i</span>Sommaire</h2>
+    <div class="toc">
+      <div class="item"><span class="n">1</span><span class="t">Contexte et menace</span></div>
+      <div class="item"><span class="n">2</span><span class="t">Principe zero-trust</span></div>
+      <div class="item"><span class="n">3</span><span class="t">Architecture cible</span></div>
+      <div class="item"><span class="n">4</span><span class="t">Le sidecar : proxy + détecteur</span></div>
+      <div class="item"><span class="n">5</span><span class="t">Quatre couches de détection PII</span></div>
+      <div class="item"><span class="n">6</span><span class="t">Le mapping éphémère</span></div>
+      <div class="item"><span class="n">7</span><span class="t">Flux d'une requête, étape par étape</span></div>
+      <div class="item"><span class="n">8</span><span class="t">Frontière de confiance</span></div>
+      <div class="item"><span class="n">9</span><span class="t">Ce qu'on couvre vs ce qu'on délègue</span></div>
+      <div class="item"><span class="n">10</span><span class="t">Choix techniques : proxy vs hooks, OAuth</span></div>
+      <div class="item"><span class="n">11</span><span class="t">Garanties zero-trust</span></div>
+      <div class="item"><span class="n">12</span><span class="t">Scénarios de démo</span></div>
+    </div>
+    <div class="footer"><span>Sommaire</span><span>2 / 16</span></div>
+  </section>
+
+  <!-- 3. CONTEXTE / MENACE -->
+  <section class="slide">
+    <h2><span class="num">1</span>Contexte et modèle de menace</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead" style="margin-bottom:1.2rem">Les équipes utilisent Claude Code, le CLI de codage d'Anthropic. Sans contrôle, tout le contenu du prompt — y compris ce que l'agent colle — part vers <span class="mono blue">api.anthropic.com</span>.</p>
+        <ul>
+          <li>PII clients : noms, emails, IBAN, AVS, adresses</li>
+          <li>Descriptions de sinistres, commentaires libres</li>
+          <li>Schémas et données de bases internes</li>
+          <li>Risque réglementaire (nLPD, FINMA) et réputation</li>
+        </ul>
+      </div>
+      <div class="card warn">
+        <span class="tag">Menace principale</span>
+        <h3>Exfiltration involontaire</h3>
+        <p>Pas un attaquant malveillant : un collaborateur pressé qui colle un export pour gagner du temps. Volume faible, mais aucun garde-fou.</p>
+        <span class="meta">Surface : tout prompt entrant + tout outil MCP appelé par l'agent</span>
+      </div>
+    </div>
+    <div class="footer"><span>Menace</span><span>3 / 16</span></div>
+  </section>
+
+  <!-- 4. PRINCIPE ZERO-TRUST -->
+  <section class="slide">
+    <h2><span class="num">2</span>Principe : zero-trust côté serveur LLM</h2>
+    <p class="lead" style="margin-bottom:1.4rem">On suppose qu'Anthropic est un service externe non-fiable pour les données client. On ne lui envoie que ce qui est strictement nécessaire au raisonnement.</p>
+    <div class="grid3">
+      <div class="card info">
+        <span class="tag">Hypothèse 1</span>
+        <h3>Réseau externe = hostile</h3>
+        <p>Tout ce qui sort du LAN est considéré comme potentiellement consultable par un tiers.</p>
+      </div>
+      <div class="card info">
+        <span class="tag">Hypothèse 2</span>
+        <h3>Le LLM n'a pas besoin du PII</h3>
+        <p>Pour aider à coder, Claude n'a besoin que de la structure du problème. Les valeurs réelles sont du bruit.</p>
+      </div>
+      <div class="card info">
+        <span class="tag">Hypothèse 3</span>
+        <h3>Le poste est de confiance</h3>
+        <p>L'endpoint corporate est durci. C'est notre périmètre de confiance pour le mapping.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Principe</span><span>4 / 16</span></div>
+  </section>
+
+  <!-- 5. ARCHITECTURE CIBLE -->
+  <section class="slide">
+    <h2><span class="num">3</span>Architecture cible</h2>
+    <svg viewBox="0 0 1100 460" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#58a6ff"/></marker>
+        <marker id="arrd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b949e"/></marker>
+        <marker id="arrr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f85149"/></marker>
+      </defs>
+
+      <!-- Zones -->
+      <rect class="zone" x="20" y="40" width="430" height="380" rx="14"/>
+      <text class="zone-lbl" x="40" y="62">Poste utilisateur</text>
+
+      <rect class="zone" x="480" y="40" width="430" height="380" rx="14"/>
+      <text class="zone-lbl" x="500" y="62">LAN serveur</text>
+
+      <rect class="zone" x="940" y="40" width="140" height="380" rx="14"/>
+      <text class="zone-lbl" x="956" y="62">Internet</text>
+
+      <!-- Poste : Claude Code -->
+      <rect class="b-blue" x="60" y="90" width="160" height="60" rx="10"/>
+      <text class="t" x="80" y="115">Claude Code</text>
+      <text class="t-sm" x="80" y="134">CLI Anthropic</text>
+
+      <!-- Poste : Sidecar -->
+      <rect class="b-green" x="60" y="190" width="350" height="100" rx="10"/>
+      <text class="t" x="80" y="215">Sidecar local</text>
+      <text class="t-sm" x="80" y="234">Proxy HTTPS + détecteur NER</text>
+      <text class="t-sm" x="80" y="252">GLiNER · Presidio · spaCy fr</text>
+      <text class="t-sm" x="80" y="270">listen :8787</text>
+
+      <!-- Poste : Redis -->
+      <rect class="b-amber" x="60" y="320" width="160" height="70" rx="10"/>
+      <text class="t" x="80" y="345">Redis local</text>
+      <text class="t-sm" x="80" y="364">mappings éphémères</text>
+      <text class="t-sm" x="80" y="380">no persistence</text>
+
+      <!-- Serveur : Gateway -->
+      <rect class="b-blue" x="520" y="90" width="200" height="80" rx="10"/>
+      <text class="t" x="540" y="115">Metadata Gateway</text>
+      <text class="t-sm" x="540" y="134">KB colonnes connues</text>
+      <text class="t-sm" x="540" y="152">patterns custom CH</text>
+
+      <!-- Serveur : IdP -->
+      <rect class="b-purple" x="520" y="200" width="200" height="60" rx="10"/>
+      <text class="t" x="540" y="225">IdP / OAuth M2M</text>
+      <text class="t-sm" x="540" y="244">tokens sidecar↔gateway</text>
+
+      <!-- Serveur : Qwen -->
+      <rect class="b-amber" x="520" y="290" width="200" height="100" rx="10"/>
+      <text class="t" x="540" y="315">Ollama · qwen3-pii</text>
+      <text class="t-sm" x="540" y="334">LLM classifier</text>
+      <text class="t-sm" x="540" y="352">colonnes ambiguës</text>
+      <text class="t-sm" x="540" y="370">~5 % des cas</text>
+
+      <!-- Internet : Anthropic -->
+      <rect class="b-red" x="950" y="200" width="120" height="80" rx="10"/>
+      <text class="t" x="965" y="225">api.anthropic</text>
+      <text class="t" x="965" y="244">.com</text>
+      <text class="t-sm" x="965" y="263">placeholders</text>
+      <text class="t-sm" x="965" y="278">seulement</text>
+
+      <!-- Flèches -->
+      <path class="arrow" d="M140,150 L140,190"/>
+      <path class="arrow" d="M220,240 L520,130" />
+      <path class="arrow" d="M220,260 L520,320" />
+      <path class="arrow" d="M220,230 L520,230" />
+      <path class="arrow" d="M410,240 L940,240" />
+      <path class="arrow-d" d="M140,290 L140,320" />
+
+      <text class="t-mini" x="240" y="180">HTTPS proxy</text>
+      <text class="t-mini" x="280" y="220">OAuth</text>
+      <text class="t-mini" x="280" y="290">/api/classify_column</text>
+      <text class="t-mini" x="280" y="345">KB lookup</text>
+      <text class="t-mini" x="740" y="232">prompts anonymisés</text>
+      <text class="t-mini" x="155" y="313">mapping</text>
+    </svg>
+    <div class="footer"><span>Architecture</span><span>5 / 16</span></div>
+  </section>
+
+  <!-- 6. LE SIDECAR -->
+  <section class="slide">
+    <h2><span class="num">4</span>Le sidecar : proxy local + détecteur</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead" style="margin-bottom:1.2rem">Un service local sur <span class="mono blue">127.0.0.1:8787</span> qui se présente à Claude Code comme l'API Anthropic. Il intercepte tout le trafic, dans les deux sens.</p>
+        <ul>
+          <li><span class="strong">Proxy HTTPS</span> avec terminaison locale (cert auto-généré ajouté au trust store)</li>
+          <li><span class="strong">SSE streaming</span> géré bidirectionnellement : on rewrite à la volée, pas de buffering complet</li>
+          <li><span class="strong">Détecteur NER</span> embarqué — pas d'appel réseau pour la détection courante</li>
+          <li><span class="strong">Mapping store</span> : Redis local en mémoire, TTL court</li>
+        </ul>
+      </div>
+      <div class="card info">
+        <span class="tag">Définitions rapides</span>
+        <h3 style="margin-bottom:.6rem">NER</h3>
+        <p style="margin-bottom:.8rem">Named Entity Recognition : modèle ML qui repère noms, lieux, organisations dans un texte.</p>
+        <h3 style="margin-bottom:.6rem">Sidecar</h3>
+        <p style="margin-bottom:.8rem">Service compagnon qui tourne à côté de l'app principale, sur le même hôte.</p>
+        <h3 style="margin-bottom:.6rem">SSE</h3>
+        <p>Server-Sent Events : protocole de streaming HTTP utilisé par Claude pour envoyer les réponses token par token.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Sidecar</span><span>6 / 16</span></div>
+  </section>
+
+  <!-- 7. 4 COUCHES DE DÉTECTION -->
+  <section class="slide">
+    <h2><span class="num">5</span>Quatre couches de détection PII</h2>
+    <div class="grid4">
+      <div class="card info">
+        <span class="tag">Couche 1</span>
+        <h3>GLiNER</h3>
+        <p>NER contextuel multilingue. Détecte personnes, lieux, organisations dans des phrases libres en français, anglais, allemand.</p>
+        <span class="meta">latence ~80 ms · local</span>
+      </div>
+      <div class="card info">
+        <span class="tag">Couche 2</span>
+        <h3>Presidio + spaCy fr</h3>
+        <p>Regex et reconnaisseurs structurés. Patterns suisses : AVS <span class="mono">756.XXXX.XXXX.XX</span>, IBAN <span class="mono">CH...</span>, téléphones, emails.</p>
+        <span class="meta">latence ~5 ms · local</span>
+      </div>
+      <div class="card info">
+        <span class="tag">Couche 3</span>
+        <h3>KB cache</h3>
+        <p>Lookup statique et fuzzy sur les noms de colonnes DB ou en-têtes CSV connus. <span class="mono">num_client</span>, <span class="mono">avs</span>, <span class="mono">iban</span>…</p>
+        <span class="meta">latence ~1 ms · local</span>
+      </div>
+      <div class="card amber">
+        <span class="tag">Couche 4 · fallback</span>
+        <h3>Qwen3-pii</h3>
+        <p>LLM classifier interne pour colonnes ambiguës dont le header n'est pas dans la KB. Appel via le gateway, sur LAN.</p>
+        <span class="meta">latence ~300 ms · LAN</span>
+      </div>
+    </div>
+    <p class="mute" style="margin-top:1.4rem;font-size:1rem">Ordre d'exécution : KB cache → Presidio (cheap and precise) → GLiNER (contextuel) → Qwen3 (uniquement si colonne header inconnu). Les hits sont fusionnés et déduplicqués.</p>
+    <div class="footer"><span>Détection</span><span>7 / 16</span></div>
+  </section>
+
+  <!-- 8. MAPPING ÉPHÉMÈRE -->
+  <section class="slide">
+    <h2><span class="num">6</span>Le mapping éphémère, en RAM uniquement</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead" style="margin-bottom:1.2rem">Chaque PII détectée est substituée par un placeholder typé. Le couple <span class="mono blue">placeholder ↔ valeur</span> est stocké côté sidecar, jamais transmis.</p>
+        <ul>
+          <li><span class="strong">Redis local</span> avec <span class="mono">--save ""</span> et <span class="mono">--appendonly no</span></li>
+          <li><span class="strong">Pas de disque</span> : pas de RDB, pas d'AOF</li>
+          <li><span class="strong">TTL par session</span> : 30 min d'inactivité ou fin de process</li>
+          <li><span class="strong">Effacé au reboot</span> : pas de récupération possible</li>
+          <li><span class="strong">Scoped au PID Claude Code</span> : un agent ne voit pas le mapping d'un autre</li>
+        </ul>
+      </div>
+      <div>
+        <span class="codetitle">Exemple de mapping en RAM</span>
+        <pre>{
+  <span class="str">"sess_a3f"</span>: {
+    <span class="ph">"[PERSONNE_1]"</span>: <span class="str">"Marie Dubois"</span>,
+    <span class="ph">"[ADRESSE_1]"</span>: <span class="str">"12 rue du Lac"</span>,
+    <span class="ph">"[AVS_1]"</span>:      <span class="str">"756.1234.5678.90"</span>,
+    <span class="ph">"[IBAN_1]"</span>:     <span class="str">"CH93 0076 2011 ..."</span>
+  }
+}
+<span class="cmt"># reboot → tout disparaît</span></pre>
+      </div>
+    </div>
+    <div class="footer"><span>Mapping</span><span>8 / 16</span></div>
+  </section>
+
+  <!-- 9. FLUX DÉTAILLÉ -->
+  <section class="slide">
+    <h2><span class="num">7</span>Flux d'une requête, étape par étape</h2>
+    <svg viewBox="0 0 1100 380" xmlns="http://www.w3.org/2000/svg">
+      <!-- Boxes -->
+      <rect class="b-blue" x="20" y="40" width="130" height="60" rx="8"/>
+      <text class="t" x="40" y="65">Claude Code</text>
+      <text class="t-sm" x="40" y="84">prompt utilisateur</text>
+
+      <rect class="b-green" x="190" y="40" width="170" height="60" rx="8"/>
+      <text class="t" x="210" y="65">Sidecar · ingress</text>
+      <text class="t-sm" x="210" y="84">interception HTTPS</text>
+
+      <rect class="b-green" x="400" y="40" width="170" height="60" rx="8"/>
+      <text class="t" x="420" y="65">Détecteur NER</text>
+      <text class="t-sm" x="420" y="84">4 couches → spans</text>
+
+      <rect class="b-amber" x="610" y="40" width="170" height="60" rx="8"/>
+      <text class="t" x="630" y="65">Mapping store</text>
+      <text class="t-sm" x="630" y="84">Redis local</text>
+
+      <rect class="b-green" x="820" y="40" width="170" height="60" rx="8"/>
+      <text class="t" x="840" y="65">Rewriter</text>
+      <text class="t-sm" x="840" y="84">substitue PII → placeholder</text>
+
+      <rect class="b-red" x="820" y="160" width="170" height="60" rx="8"/>
+      <text class="t" x="840" y="185">api.anthropic.com</text>
+      <text class="t-sm" x="840" y="204">voit que les placeholders</text>
+
+      <rect class="b-green" x="610" y="160" width="170" height="60" rx="8"/>
+      <text class="t" x="630" y="185">SSE rewriter</text>
+      <text class="t-sm" x="630" y="204">décode placeholder→PII</text>
+
+      <rect class="b-blue" x="20" y="160" width="130" height="60" rx="8"/>
+      <text class="t" x="40" y="185">Affichage local</text>
+      <text class="t-sm" x="40" y="204">PII réelles visibles</text>
+
+      <rect class="b-purple" x="400" y="280" width="170" height="60" rx="8"/>
+      <text class="t" x="420" y="305">Gateway / KB</text>
+      <text class="t-sm" x="420" y="324">lookup colonnes</text>
+
+      <rect class="b-amber" x="610" y="280" width="170" height="60" rx="8"/>
+      <text class="t" x="630" y="305">qwen3-pii</text>
+      <text class="t-sm" x="630" y="324">fallback ~5%</text>
+
+      <!-- Arrows -->
+      <path class="arrow" d="M150,70 L190,70"/>
+      <path class="arrow" d="M360,70 L400,70"/>
+      <path class="arrow" d="M570,70 L610,70"/>
+      <path class="arrow" d="M780,70 L820,70"/>
+      <path class="arrow" d="M905,100 L905,160"/>
+      <path class="arrow" d="M820,190 L780,190"/>
+      <path class="arrow" d="M610,190 L150,190"/>
+
+      <path class="arrow-d" d="M485,100 L485,280"/>
+      <path class="arrow-d" d="M570,310 L610,310"/>
+      <path class="arrow-d" d="M695,280 L695,100"/>
+
+      <text class="t-mini" x="220" y="135">1. capture</text>
+      <text class="t-mini" x="430" y="135">2. détecte</text>
+      <text class="t-mini" x="635" y="135">3. assign IDs</text>
+      <text class="t-mini" x="845" y="135">4. rewrite</text>
+      <text class="t-mini" x="920" y="145">5. send</text>
+      <text class="t-mini" x="500" y="180">7. decode</text>
+      <text class="t-mini" x="715" y="180">6. SSE stream</text>
+      <text class="t-mini" x="490" y="270">si colonne inconnue</text>
+    </svg>
+    <div class="legend">
+      <span><span class="sw b"></span>Claude Code / affichage</span>
+      <span><span class="sw g"></span>Sidecar (local)</span>
+      <span><span class="sw a"></span>Mapping / LLM PII</span>
+      <span><span class="sw r"></span>Anthropic (externe)</span>
+    </div>
+    <div class="footer"><span>Flux</span><span>9 / 16</span></div>
+  </section>
+
+  <!-- 10. FRONTIÈRE -->
+  <section class="slide">
+    <h2><span class="num">8</span>Frontière de confiance</h2>
+    <div class="grid2">
+      <div class="card ok">
+        <span class="tag">Reste local (poste)</span>
+        <h3>Données sensibles brutes</h3>
+        <p style="line-height:1.7">· Prompt original de l'utilisateur<br>· Valeurs PII (noms, IBAN, AVS)<br>· Mapping placeholder ↔ valeur<br>· Réponses LLM ré-hydratées<br>· Logs sidecar (PII masqués par défaut)</p>
+        <span class="meta">stockage : RAM uniquement</span>
+      </div>
+      <div class="card info">
+        <span class="tag">Traverse le LAN</span>
+        <h3>Métadonnées et schémas</h3>
+        <p style="line-height:1.7">· Noms de colonnes (pas de valeurs)<br>· Headers CSV<br>· Échantillons de colonnes ambiguës <span class="amber">← seul cas PII transite</span><br>· Tokens OAuth M2M</p>
+        <span class="meta">infra : gateway + qwen, LAN seulement</span>
+      </div>
+    </div>
+    <div class="card warn" style="margin-top:1.4rem">
+      <span class="tag">Sort vers internet</span>
+      <h3>Prompts anonymisés uniquement</h3>
+      <p>Tout ce qui atteint <span class="mono blue">api.anthropic.com</span> est passé par le rewriter. Aucune valeur réelle, uniquement des placeholders typés et indexés.</p>
+    </div>
+    <div class="footer"><span>Frontière</span><span>10 / 16</span></div>
+  </section>
+
+  <!-- 11. COUVRE / DÉLÈGUE -->
+  <section class="slide">
+    <h2><span class="num">9</span>Ce qu'on couvre, ce qu'on délègue à l'infra</h2>
+    <div class="grid2">
+      <div class="card ok">
+        <span class="tag">Le projet couvre</span>
+        <h3>Détection et substitution PII</h3>
+        <ul style="gap:.5rem;margin-top:.6rem">
+          <li>Interception complète Claude Code ↔ api.anthropic</li>
+          <li>Détection multi-couches (NER, regex, KB, LLM)</li>
+          <li>Mapping éphémère scoped session</li>
+          <li>Rewriter SSE bidirectionnel</li>
+          <li>Mode fail-closed sur incident</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <span class="tag">L'infra apporte</span>
+        <h3>Confiance du poste et identité</h3>
+        <ul style="gap:.5rem;margin-top:.6rem">
+          <li>EDR + durcissement endpoint corporate</li>
+          <li>IdP centralisé pour OAuth M2M sidecar→gateway</li>
+          <li>VPN / posture réseau pour atteindre le LAN</li>
+          <li>Gestion du cycle de vie : déploiement, mise à jour, télémétrie d'usage</li>
+          <li>SIEM pour journaux d'événements (non-PII)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Périmètre</span><span>11 / 16</span></div>
+  </section>
+
+  <!-- 12. CHOIX TECHNIQUES -->
+  <section class="slide">
+    <h2><span class="num">10</span>Choix techniques clés</h2>
+    <div class="grid2">
+      <div class="card info">
+        <span class="tag">Pourquoi un proxy plutôt que des hooks Claude Code</span>
+        <h3>Couverture exhaustive</h3>
+        <p style="margin-bottom:.6rem">Les hooks (PreToolUse, UserPromptSubmit) ne capturent pas tout : les sous-agents, les serveurs MCP en background, certains tool calls passent à côté.</p>
+        <p>Un proxy au niveau HTTPS intercepte <span class="strong">100 % du trafic</span> sortant vers api.anthropic. Aucun chemin parallèle possible.</p>
+      </div>
+      <div class="card info">
+        <span class="tag">Pourquoi OAuth M2M sidecar↔gateway</span>
+        <h3>Identité forte et révocable</h3>
+        <p style="margin-bottom:.6rem">Une simple clé partagée serait simple, mais immuable et difficile à révoquer poste par poste.</p>
+        <p>OAuth machine-to-machine via l'IdP : chaque sidecar a son client_id, audit centralisé, révocation immédiate.</p>
+      </div>
+      <div class="card info">
+        <span class="tag">Pourquoi Redis local et pas mémoire Python</span>
+        <h3>Survie aux reloads</h3>
+        <p style="margin-bottom:.6rem">Le sidecar peut redémarrer pendant qu'une session Claude est en cours. Redis garde le mapping vivant entre les reloads, tout en restant en RAM.</p>
+        <p><span class="mono">--save "" --appendonly no</span> → aucune trace disque.</p>
+      </div>
+      <div class="card info">
+        <span class="tag">Pourquoi un LLM côté serveur pour les colonnes</span>
+        <h3>Le compromis assumé</h3>
+        <p style="margin-bottom:.6rem">Un header de colonne inconnu n'est pas du PII en soi, mais on doit décider rapidement si la colonne contient du PII.</p>
+        <p>Qwen3-pii sur LAN classifie à partir d'un échantillon. ~5 % des cas, accepté car reste intra-muros.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Choix</span><span>12 / 16</span></div>
+  </section>
+
+  <!-- 13. GARANTIES -->
+  <section class="slide">
+    <h2><span class="num">11</span>Garanties zero-trust</h2>
+    <ul>
+      <li><span class="strong blue">Aucun PII ne quitte le poste utilisateur en clair</span> — exception assumée : échantillon de colonnes ambiguës vers qwen3, reste sur LAN (~5 %).</li>
+      <li><span class="strong blue">Aucun PII stocké sur disque</span> — Redis sans persistence, reboot efface le mapping. Pas de logs PII (masqués via filtre structuré).</li>
+      <li><span class="strong blue">Aucun PII dans les logs serveur</span> — le gateway et qwen ne loggent que des hashes ou tronqués. SIEM ne reçoit jamais de valeurs réelles.</li>
+      <li><span class="strong blue">Fail-safe par défaut</span> — si le sidecar tombe ou si le détecteur renvoie une erreur, la requête est bloquée. Pas de bypass silencieux.</li>
+      <li><span class="strong blue">Surface d'attaque réduite</span> — pas de plugin Claude Code modifiable, pas de hook contournable, pas de variable d'environnement à oublier.</li>
+    </ul>
+    <div class="footer"><span>Garanties</span><span>13 / 16</span></div>
+  </section>
+
+  <!-- 14. MCP NOTE -->
+  <section class="slide">
+    <h2><span class="num">+</span>Note : et les outils MCP ?</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead" style="margin-bottom:1.2rem">MCP (Model Context Protocol) est le protocole par lequel Claude Code appelle des outils externes — bases de données, APIs internes, etc.</p>
+        <ul>
+          <li>Les serveurs MCP pointent désormais sur le sidecar local</li>
+          <li>Les schémas et résultats SQL sont anonymisés avant transit</li>
+          <li>Les en-têtes de colonnes sont résolus contre la KB du gateway</li>
+          <li>Les valeurs renvoyées par les outils sont rewrites avec les mêmes placeholders, cohérence cross-tool</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <span class="tag">Cohérence cross-tool</span>
+        <h3>Un seul mapping par session</h3>
+        <p>Si <span class="mono">[PERSONNE_1]</span> = Marie Dubois dans le prompt, c'est le même <span class="mono">[PERSONNE_1]</span> dans le résultat SQL renvoyé par MCP. Claude peut raisonner, l'humain voit du français.</p>
+      </div>
+    </div>
+    <div class="footer"><span>MCP</span><span>14 / 16</span></div>
+  </section>
+
+  <!-- 15. DÉMO -->
+  <section class="slide">
+    <h2><span class="num">12</span>Scénarios de démo</h2>
+    <div class="grid2">
+      <div class="card">
+        <span class="tag">Scène 1 · CSV collé</span>
+        <h3>Anonymisation à la volée</h3>
+        <p>Coller un CSV clients dans le prompt. On regarde côté outbound HTTPS : aucune valeur réelle. Côté écran : tout est lisible.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Scène 2 · Phrase libre</span>
+        <h3>Détection contextuelle</h3>
+        <p>Phrase mêlant nom + adresse + IBAN, sans marqueurs structurels. Démonstration de GLiNER + Presidio.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Scène 3 · Base de données</span>
+        <h3>KB + qwen fallback</h3>
+        <p>Demande d'analyse sur demo. Plusieurs tables, certaines colonnes commentaires avec PII clairsemées. KB pour les connues, qwen pour le reste.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Scène 4 · Pipeline data</span>
+        <h3>Bout en bout</h3>
+        <p>Claude explore la DB via MCP, génère du code Python, propose un pipeline. Mapping cohérent du début à la fin.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Démo</span><span>15 / 16</span></div>
+  </section>
+
+  <!-- 16. FIN -->
+  <section class="slide">
+    <h1>Questions <span class="accent">avant la démo ?</span></h1>
+    <p class="lead">Architecture, choix techniques, modes dégradés, intégration infra — tout est sur la table.</p>
+    <p class="mute" style="margin-top:2rem;font-family:var(--mono);font-size:.9rem">git · feat/zero-trust-gateway</p>
+    <div class="footer"><span>Fin</span><span>16 / 16</span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)">← Précédent</button>
+  <button onclick="go(1)">Suivant →</button>
+</div>
+
+<script>
+  const slides=document.querySelectorAll('.slide');
+  const progress=document.getElementById('progress');
+  let i=0;
+  function show(n){
+    slides[i].classList.remove('active');
+    i=(n+slides.length)%slides.length;
+    slides[i].classList.add('active');
+    progress.style.width=((i+1)/slides.length*100)+'%';
+  }
+  function go(d){show(i+d)}
+  show(0);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown')go(1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp')go(-1);
+    if(e.key==='Home')show(0);
+    if(e.key==='End')show(slides.length-1);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Démo zero-trust — pas à pas</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --card: #1a2028;
+    --border: #2a3441;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --scene: #f0b73d;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --code-bg: #0d1117;
+    --code-text: #c9d1d9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 24px 80px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .container { max-width: 920px; margin: 0 auto; }
+  h1 {
+    font-size: 28px;
+    margin: 0 0 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+  }
+  .lead { color: var(--muted); margin: 0 0 32px; }
+  .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin: 40px 0 12px;
+    font-weight: 600;
+  }
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 0 0 20px;
+  }
+  .step.scene { border-left: 4px solid var(--scene); }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .step-num {
+    background: var(--accent);
+    color: #0d1117;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .step.scene .step-num { background: var(--scene); }
+  .step h2 { margin: 0; font-size: 18px; font-weight: 600; }
+  .step p { margin: 8px 0; color: var(--text); }
+  .step .why { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .code-block {
+    position: relative;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+  .code-block.prompt { border-color: rgba(240,183,61,0.4); }
+  .code-block pre {
+    margin: 0;
+    padding: 14px 76px 14px 14px;
+    overflow-x: auto;
+    color: var(--code-text);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--border);
+    color: var(--text);
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .copy-btn:hover { background: #3a4654; }
+  .copy-btn.copied { background: var(--ok); color: #0d1117; }
+  .expected {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: rgba(63, 185, 80, 0.08);
+    border-left: 3px solid var(--ok);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .expected b { color: var(--ok); }
+  .warn {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: rgba(210, 153, 34, 0.08);
+    border-left: 3px solid var(--warn);
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .warn b { color: var(--warn); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+  }
+  .badge.terminal { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .badge.claude { background: rgba(240,183,61,0.15); color: var(--scene); }
+  code.inline {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--code-text);
+  }
+  hr.sep {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 32px 0 24px;
+  }
+  .footnote { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Démo zero-trust — pas à pas</h1>
+<p class="lead">
+  Setup en haut (4 étapes), puis 4 scènes de démo. Les badges
+  <span class="badge terminal">Terminal</span> = à taper dans bash ;
+  <span class="badge claude">Claude Code</span> = à coller dans une session <code class="inline">claude</code>.
+</p>
+
+<div class="section-title">Setup — à faire une fois</div>
+
+<!-- 1 -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <h2>Lancer le gateway <span class="badge terminal">Terminal</span></h2>
+  </div>
+  <p>Démarre gateway (port 8001) + postgres.</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="cd ~/Documents/llm-anon-gateway && docker compose up -d gateway postgres">Copier</button>
+    <pre>cd ~/Documents/llm-anon-gateway &amp;&amp; docker compose up -d gateway postgres</pre>
+  </div>
+  <div class="expected">
+    <b>Attendu :</b> deux containers <code class="inline">Started</code>. Patiente ~15 sec, puis vérifie :
+  </div>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd='curl -sS -o /dev/null -w "HTTP %{http_code}\n" http://127.0.0.1:8001/docs'>Copier</button>
+    <pre>curl -sS -o /dev/null -w "HTTP %{http_code}\n" http://127.0.0.1:8001/docs</pre>
+  </div>
+  <div class="expected"><b>Attendu :</b> <code class="inline">HTTP 200</code>.</div>
+</div>
+
+<!-- 2 -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <h2>Lancer le sidecar <span class="badge terminal">Terminal</span></h2>
+  </div>
+  <p>Démarre le sidecar local (NER + Redis ephémère).</p>
+  <div class="warn"><b>⚠ Première fois :</b> build de l'image ~5-10 min. Les fois suivantes c'est instantané.</div>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="cd ~/Documents/llm-anon-gateway && bash sidecar/install.sh --gateway http://host.docker.internal:8001">Copier</button>
+    <pre>cd ~/Documents/llm-anon-gateway &amp;&amp; bash sidecar/install.sh --gateway http://host.docker.internal:8001</pre>
+  </div>
+  <div class="expected"><b>Attendu :</b> ligne finale <code class="inline">[OK] Installation terminée.</code></div>
+</div>
+
+<!-- 3 -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <h2>Reseed la base SQLite de démo <span class="badge terminal">Terminal</span></h2>
+  </div>
+  <p>S'assure que la DB <code class="inline">demo/demo.sqlite</code> est à jour (25 clients, 15 sinistres, commentaires libres avec PII clairsemées).</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="cd ~/Documents/llm-anon-gateway && python3 demo/seed_db.py">Copier</button>
+    <pre>cd ~/Documents/llm-anon-gateway &amp;&amp; python3 demo/seed_db.py</pre>
+  </div>
+  <div class="expected"><b>Attendu :</b> <code class="inline">DB créée : .../demo.sqlite</code> avec les comptes de chaque table.</div>
+</div>
+
+<!-- 4 -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <h2>Lancer Claude Code via le proxy <span class="badge terminal">Terminal</span></h2>
+  </div>
+  <p>La variable <code class="inline">ANTHROPIC_BASE_URL</code> redirige Claude Code vers le proxy local au lieu d'<code class="inline">api.anthropic.com</code>. Tout le trafic — prompts utilisateur, system prompt, sorties de Bash/Read, résultats MCP, etc. — est intercepté par le sidecar, anonymisé en sortie, et désanonymisé en streaming au retour pour ton affichage.</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="cd ~/Documents/llm-anon-gateway && ANTHROPIC_BASE_URL=http://127.0.0.1:8787 claude">Copier</button>
+    <pre>cd ~/Documents/llm-anon-gateway &amp;&amp; ANTHROPIC_BASE_URL=http://127.0.0.1:8787 claude</pre>
+  </div>
+  <div class="expected">
+    <b>Attendu :</b> Claude Code démarre normalement. Le fichier <code class="inline">.claude/settings.local.json</code> du projet active aussi le MCP <code class="inline">anon-gateway</code> (outil <code class="inline">query_db</code> pour l'analyse de DB). Tape <code class="inline">/mcp</code> dans Claude pour vérifier que <code class="inline">anon-gateway</code> est connecté.
+  </div>
+  <div class="warn">
+    <b>⚠ Important</b> : <code class="inline">ANTHROPIC_BASE_URL</code> est défini à la volée pour cette session uniquement. Si tu ouvres un autre terminal sans cette variable, Claude Code parle direct à Anthropic et il n'y a aucune anonymisation. C'est volontaire — l'anonymisation est strictement opt-in à ce projet.
+  </div>
+</div>
+
+<div class="section-title">Scènes de démo</div>
+
+<!-- SCENE 1 -->
+<div class="step scene">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <h2>Coller un tableau de données et poser des questions <span class="badge claude">Claude Code</span></h2>
+  </div>
+  <p>Le scénario : un collaborateur copie-colle un extrait CSV depuis Excel et demande une analyse. Tu vas voir que le tableau est <b>anonymisé avant d'arriver chez Anthropic</b>, mais que tu reçois la réponse en clair dans ton terminal.</p>
+  <p class="why">Colle ce prompt entier (avec le tableau) dans Claude Code :</p>
+  <div class="code-block prompt">
+    <button class="copy-btn" data-cmd="J'ai exporté ce tableau de clients depuis Excel, dis-moi qui a le plus gros risque de résiliation et pourquoi :
+
+client_id,nom,prenom,email,telephone,localite,langue,commentaire
+1,Dubois,Marie,marie.dubois@bluewin.ch,+41 78 412 33 21,Lausanne,fr,Cliente VIP — médecin Dr. Anne Leclerc Lausanne 021 312 45 67, allergie pénicilline
+2,Müller,Hans,hans.mueller@gmx.ch,+41 79 555 11 22,Zürich,de,IBAN UBS CH56 0023 0023 1234 5678 9, fille Anna Müller +41 78 999 11 22
+7,Maillard,Julien,julien.maillard@bluewin.ch,+41 76 555 18 27,Lausanne,fr,Freelance tech ex-Swisscom, compagne Sophie Renaud +41 79 555 12 34
+9,Lehmann,Petra,petra.lehmann@gmail.com,+41 78 777 89 01,Thalwil,de,Divorcée 2021 — ex Robert Lehmann PLUS bénéficiaire, avocate Dr. Susanne Kaufmann
+24,Dos Santos,Paulo,paulo.dossantos@hotmail.com,+41 78 678 90 12,Carouge,fr,Permis C Implenia EMP-77821, femme Maria Dos Santos née Pereira
+
+Identifie aussi tous les contacts de tiers mentionnés (conjoints, médecins, avocats).">Copier</button>
+    <pre>J'ai exporté ce tableau de clients depuis Excel, dis-moi qui a le plus gros risque de résiliation et pourquoi :
+
+client_id,nom,prenom,email,telephone,localite,langue,commentaire
+1,Dubois,Marie,marie.dubois@bluewin.ch,+41 78 412 33 21,Lausanne,fr,Cliente VIP — médecin Dr. Anne Leclerc Lausanne 021 312 45 67, allergie pénicilline
+2,Müller,Hans,hans.mueller@gmx.ch,+41 79 555 11 22,Zürich,de,IBAN UBS CH56 0023 0023 1234 5678 9, fille Anna Müller +41 78 999 11 22
+7,Maillard,Julien,julien.maillard@bluewin.ch,+41 76 555 18 27,Lausanne,fr,Freelance tech ex-Swisscom, compagne Sophie Renaud +41 79 555 12 34
+9,Lehmann,Petra,petra.lehmann@gmail.com,+41 78 777 89 01,Thalwil,de,Divorcée 2021 — ex Robert Lehmann PLUS bénéficiaire, avocate Dr. Susanne Kaufmann
+24,Dos Santos,Paulo,paulo.dossantos@hotmail.com,+41 78 678 90 12,Carouge,fr,Permis C Implenia EMP-77821, femme Maria Dos Santos née Pereira
+
+Identifie aussi tous les contacts de tiers mentionnés (conjoints, médecins, avocats).</pre>
+  </div>
+  <div class="expected">
+    <b>Ce que tu vois :</b> dans ton terminal, la réponse de Claude apparaît avec les vrais noms (« Marie Dubois », « Lausanne », l'IBAN, etc.) — le proxy a désanonymisé en streaming. Anthropic, lui, n'a vu que des placeholders <code class="inline">[PERSONNE_1]</code>, <code class="inline">[EMAIL_3]</code>, <code class="inline">[IBAN_1]</code> à toutes les étapes du raisonnement.
+  </div>
+  <div class="expected">
+    <b>Le point clé :</b> Anthropic n'a JAMAIS vu "Marie Dubois", "marie.dubois@bluewin.ch" ni l'IBAN. Pour vérifier, dans un autre terminal :
+  </div>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd='docker logs --tail=20 anon-sidecar | grep -i anonymize'>Copier</button>
+    <pre>docker logs --tail=20 anon-sidecar | grep -i anonymize</pre>
+  </div>
+</div>
+
+<!-- SCENE 2 -->
+<div class="step scene">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <h2>Phrase libre avec PII <span class="badge claude">Claude Code</span></h2>
+  </div>
+  <p>Variante plus rapide : un simple prompt conversationnel.</p>
+  <div class="code-block prompt">
+    <button class="copy-btn" data-cmd="Peux-tu me rédiger un email professionnel à Julien Maillard (julien.maillard@bluewin.ch) qui habite Chemin des Lilas 8, 1003 Lausanne, pour lui confirmer le bon traitement de son dossier d'assistance suite à l'incident sur la route entre Echallens et Yverdon ? Mentionne aussi que sa compagne Sophie Renaud a été informée.">Copier</button>
+    <pre>Peux-tu me rédiger un email professionnel à Julien Maillard (julien.maillard@bluewin.ch) qui habite Chemin des Lilas 8, 1003 Lausanne, pour lui confirmer le bon traitement de son dossier d'assistance suite à l'incident sur la route entre Echallens et Yverdon ? Mentionne aussi que sa compagne Sophie Renaud a été informée.</pre>
+  </div>
+  <div class="expected">
+    <b>Attendu :</b> l'email rédigé par Claude sort vers Anthropic avec des placeholders, mais le proxy te ré-affiche localement la version avec les vrais noms — prête à copier-coller dans Outlook.
+  </div>
+</div>
+
+<!-- SCENE 3 -->
+<div class="step scene">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <h2>Analyse de la base de données <span class="badge claude">Claude Code</span></h2>
+  </div>
+  <p>Maintenant le test important : Claude analyse une DB SQLite réelle. Il doit utiliser le MCP <code class="inline">query_db</code> (et pas le Bash sqlite3 natif) — c'est <code class="inline">query_db</code> qui passe par le sidecar et anonymise les résultats <b>avant</b> de les rendre visibles à Claude.</p>
+  <div class="code-block prompt">
+    <button class="copy-btn" data-cmd="Utilise l'outil MCP query_db (anon-gateway) pour analyser la base de démo. Donne-moi :
+1. Le top 5 des clients par nombre de sinistres (jointure clients + contrats_assurance + sinistres)
+2. Pour chacun, le détail du dernier sinistre (description, montant)
+3. Une analyse des commentaires libres dans la table clients : quels patterns voient les agents (médecins fréquents, types de contacts d'urgence, etc.) ?
+
+NE fais PAS de sqlite3 via Bash — utilise exclusivement le tool MCP query_db pour garantir que les PII restent locales.">Copier</button>
+    <pre>Utilise l'outil MCP query_db (anon-gateway) pour analyser la base de démo. Donne-moi :
+1. Le top 5 des clients par nombre de sinistres (jointure clients + contrats_assurance + sinistres)
+2. Pour chacun, le détail du dernier sinistre (description, montant)
+3. Une analyse des commentaires libres dans la table clients : quels patterns voient les agents (médecins fréquents, types de contacts d'urgence, etc.) ?
+
+NE fais PAS de sqlite3 via Bash — utilise exclusivement le tool MCP query_db pour garantir que les PII restent locales.</pre>
+  </div>
+  <div class="expected">
+    <b>Ce que tu vois :</b> Claude appelle <code class="inline">query_db</code> plusieurs fois. À chaque appel, le résultat retourné contient un CSV où tous les noms, emails, téléphones, IBAN, etc. sont déjà remplacés par <code class="inline">[PERSONNE_N]</code>, <code class="inline">[EMAIL_N]</code>, etc. Claude analyse ces données pseudonymisées et te retourne un rapport. Le proxy décode tout en streaming pour ton terminal — tu vois les vrais noms en local, Anthropic n'a vu que les placeholders.
+  </div>
+  <div class="expected">
+    <b>Vérification :</b> dans un autre terminal, regarde combien d'appels <code class="inline">/anonymize</code> le sidecar reçoit pendant cette scène — chaque <code class="inline">query_db</code> en génère un.
+  </div>
+</div>
+
+<!-- SCENE 4 -->
+<div class="step scene">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <h2>Construction d'un pipeline de données <span class="badge claude">Claude Code</span></h2>
+  </div>
+  <p>Le test final : Claude doit produire du code Python qui sera exécuté en production. Il a besoin d'explorer la DB pour comprendre la structure, voir des exemples, et écrire un script qui tient debout.</p>
+  <div class="code-block prompt">
+    <button class="copy-btn" data-cmd="Construis-moi un pipeline Python qui :
+
+1. Lit la base de démo (utilise query_db du MCP anon-gateway pour comprendre le schéma et voir des exemples de données — interdit d'utiliser sqlite3 en direct)
+2. Pour chaque sinistre clos en 2025, calcule le délai entre date_sinistre et résolution (suppose résolution = date la plus récente d'intervention liée au même client)
+3. Détecte les sinistres « suspects » : montant > 10000 CHF ET description contenant un nom de tiers (autre personne mentionnée que le client lui-même)
+4. Génère un rapport CSV final avec : no_sinistre, montant, délai_jours, tiers_mentionnés, score_suspicion
+
+Le pipeline doit être PRÊT À TOURNER EN PROD : pas de PII en clair dans les logs, pas de noms en dur dans le code, et doit pouvoir traiter 100k lignes sans charger toute la DB en mémoire.">Copier</button>
+    <pre>Construis-moi un pipeline Python qui :
+
+1. Lit la base de démo (utilise query_db du MCP anon-gateway pour comprendre le schéma et voir des exemples de données — interdit d'utiliser sqlite3 en direct)
+2. Pour chaque sinistre clos en 2025, calcule le délai entre date_sinistre et résolution (suppose résolution = date la plus récente d'intervention liée au même client)
+3. Détecte les sinistres « suspects » : montant > 10000 CHF ET description contenant un nom de tiers (autre personne mentionnée que le client lui-même)
+4. Génère un rapport CSV final avec : no_sinistre, montant, délai_jours, tiers_mentionnés, score_suspicion
+
+Le pipeline doit être PRÊT À TOURNER EN PROD : pas de PII en clair dans les logs, pas de noms en dur dans le code, et doit pouvoir traiter 100k lignes sans charger toute la DB en mémoire.</pre>
+  </div>
+  <div class="expected">
+    <b>Ce que tu vois :</b> Claude alterne entre appels <code class="inline">query_db</code> exploratoires (toujours anonymisés) et écriture de code. Le code final qu'il produit ne contient aucun nom de client en dur, juste du code générique qui consomme les données pseudonymisées.
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- TEST FAIL-SAFE -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">🛡</div>
+    <h2>Bonus — démontrer le fail-safe <span class="badge terminal">Terminal</span></h2>
+  </div>
+  <p>Pour prouver que rien ne fuit en cas de panne du sidecar : on l'arrête brutalement et on retape un prompt.</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="docker stop anon-sidecar">Copier</button>
+    <pre>docker stop anon-sidecar</pre>
+  </div>
+  <p>Puis dans Claude Code, retape n'importe quel prompt. Attendu : Claude Code affiche une erreur <code class="inline">503 Anonymization failed — request blocked (fail-safe)</code>. Le proxy refuse de forward la requête vers Anthropic si l'anonymisation a crashé. Pour redémarrer :</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="docker start anon-sidecar">Copier</button>
+    <pre>docker start anon-sidecar</pre>
+  </div>
+</div>
+
+<!-- DEBUG -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">⚙</div>
+    <h2>En cas de souci <span class="badge terminal">Terminal</span></h2>
+  </div>
+  <p>Logs sidecar :</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="docker logs -f anon-sidecar">Copier</button>
+    <pre>docker logs -f anon-sidecar</pre>
+  </div>
+  <p>Tester directement le sidecar (smoke) :</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd='curl -sS http://127.0.0.1:8787/anonymize -H "X-Sidecar-Token: $(cat ~/.config/anon-sidecar/token)" -H "Content-Type: application/json" -d "{\"text\":\"Julien Maillard habite Lausanne.\"}"'>Copier</button>
+    <pre>curl -sS http://127.0.0.1:8787/anonymize \
+  -H "X-Sidecar-Token: $(cat ~/.config/anon-sidecar/token)" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Julien Maillard habite Lausanne."}'</pre>
+  </div>
+  <p>Tout stopper :</p>
+  <div class="code-block">
+    <button class="copy-btn" data-cmd="cd ~/Documents/llm-anon-gateway && bash sidecar/uninstall.sh && docker compose down">Copier</button>
+    <pre>cd ~/Documents/llm-anon-gateway &amp;&amp; bash sidecar/uninstall.sh &amp;&amp; docker compose down</pre>
+  </div>
+</div>
+
+<p class="footnote">
+  Config démo dans <code class="inline">.claude/settings.local.json</code> (MCP <code class="inline">anon-gateway</code>) + variable d'env <code class="inline">ANTHROPIC_BASE_URL</code> définie à la volée — l'anonymisation est strictement opt-in à ce projet, ne pollue pas la config Claude Code globale.
+</p>
+
+</div>
+
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const cmd = btn.getAttribute('data-cmd');
+    try {
+      await navigator.clipboard.writeText(cmd);
+      const original = btn.textContent;
+      btn.textContent = '✓ Copié';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 1500);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = cmd;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '✓ Copié';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copier';
+        btn.classList.remove('copied');
+      }, 1500);
+    }
+  });
+});
+</script>
+</body>
+</html>
